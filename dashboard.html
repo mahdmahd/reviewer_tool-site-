@@ -230,14 +230,21 @@ function reviewRows(){
   const min=live.filter(n=>sevOf(n)==="minor").length;
   const un=live.filter(n=>!sevOf(n)).length;
   const rj=notes.length-live.length;
-  const ai=S.ai&&S.ai.on===true?"Run":S.ai&&S.ai.on===false?"Skipped":"Not opened";
+  const aiAns=(S.ai&&S.ai.ans)||{};
+  const flagged=Object.values(aiAns).filter(a=>a&&(a.val==="1"||a.val==="2"||a.val==="no")).length;
+  const ai=S.ai&&S.ai.on===true?("Run · "+flagged+" flagged (1–2)"):S.ai&&S.ai.on===false?"Skipped":"Not opened";
+  const core=(S.core||[]).length;
+  const sn=(S.springer&&S.springer.level)||"—";
   const REC={accept:"Accept",minor:"Minor revision",major:"Major revision",reject:"Reject"};
   const body=[
     ["Manuscript",'<b>'+esc(S.ms||"Untitled manuscript")+'</b>'],
     ["Readings",notes.length+' total · '+live.length+' live · '+rj+' struck'],
     ["Severity",sevTag("major","MAJ "+maj)+" "+sevTag("minor","MIN "+min)+" "+sevTag("","untagged "+un)],
+    ["Core concerns",(core?("★ "+core+" / 3"):'<span class="m">None</span>')],
     ["Sections",(S.sections||[]).map(esc).join(", ")||"—"],
     ["AI checklist",esc(ai)],
+    ["AI-use (Springer)",esc(sn)],
+    ["History",((S.history||[]).length||0)+" events"],
     ["Recommendation",S.rec?esc(REC[S.rec]||S.rec):'<span class="m">Not set</span>'],
     ["Station",esc(STEPS[S.step]||"—")]
   ].map(r=>'<div class="row"><div class="k">'+r[0]+'</div><div class="v">'+r[1]+'</div></div>').join("");

@@ -531,6 +531,39 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .apitype .tagset .tag{cursor:pointer}
 .apitype-h{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.02em;color:var(--ink-3);flex:1 1 180px;line-height:1.5}
 
+/* --- AI scale answers, EQUATOR panel, Springer table, core concerns, reviews library --- */
+.tcell-ans{flex-wrap:wrap;max-width:340px}
+.tcell-ans button{min-height:44px}
+.tcell-ans button[aria-pressed="true"][data-v="1"],
+.tcell-ans button[aria-pressed="true"][data-v="2"]{background:var(--major);color:#fff}
+.tcell-ans button[aria-pressed="true"][data-v="3"]{background:var(--minor);color:#fff}
+.tcell-ans button[aria-pressed="true"][data-v="4"],
+.tcell-ans button[aria-pressed="true"][data-v="5"]{background:var(--ok);color:#fff}
+.tcell-ans button[aria-pressed="true"][data-v="unclear"]{background:var(--minor);color:#fff}
+.tcell-ans button[aria-pressed="true"][data-v="na"]{background:var(--ink-3);color:#fff}
+.eqpanel{border:1px solid var(--rule-strong);background:var(--card);padding:14px 16px;margin-bottom:18px}
+.eqpanel h3{font-family:var(--f-display);font-size:16px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
+.eqpanel p{font-size:13.5px;color:var(--ink-2);margin:0 0 10px;line-height:1.55}
+.eqlinks{display:flex;gap:6px;flex-wrap:wrap}
+.eqlinks a{font-family:var(--f-mono);font-size:11px;border:1px solid var(--rule);padding:5px 9px;text-decoration:none;color:var(--ultra-ink);background:var(--paper)}
+.eqlinks a:hover{border-color:var(--ultra);background:var(--ultra-wash)}
+.sn-table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0}
+.sn-table th{font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:8px;border:1px solid var(--rule-strong);background:var(--ink);color:var(--paper)}
+.sn-table td{padding:9px 10px;border:1px solid var(--rule);vertical-align:top;line-height:1.5;background:var(--card)}
+.sn-table tr[data-lvl="green"] td:first-child{border-left:5px solid var(--ok)}
+.sn-table tr[data-lvl="amber"] td:first-child{border-left:5px solid var(--minor)}
+.sn-table tr[data-lvl="red"] td:first-child{border-left:5px solid var(--major)}
+.corebtn[aria-pressed="true"]{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important}
+.note.is-core{outline:2px solid var(--ink);outline-offset:-2px}
+.note.is-core .note-text{font-weight:700}
+.rline.is-core .rline-v{font-weight:700}
+.revlist{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.revrow{display:flex;gap:10px;align-items:center;border:1px solid var(--rule);background:var(--card);padding:10px 12px;flex-wrap:wrap}
+.revrow .rm{flex:1 1 180px;min-width:0}
+.revrow .rm b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.revrow .rm span{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.hist{font-family:var(--f-mono);font-size:11px;line-height:1.7;color:var(--ink-2);max-height:180px;overflow:auto;border:1px solid var(--hair);background:var(--paper);padding:10px 12px;margin-top:10px}
+
 @media(max-width:880px){
   .armature{grid-template-columns:1fr}
   .rail{position:static;border-right:0;border-bottom:1px solid var(--rule-strong);padding:14px 0 16px;min-height:0}
@@ -589,6 +622,11 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
     <div class="spacer"></div>
     <div class="tools">
       <button type="button" id="btn-gloss">AI Glossary<span aria-hidden="true"> ↗</span></button>
+      <button type="button" id="btn-new" title="Start a new review">＋ New</button>
+      <button type="button" id="btn-open" title="Continue a saved review">My reviews</button>
+      <button type="button" id="btn-export" title="Save this review as a .pltpy file">Export .pltpy</button>
+      <button type="button" id="btn-import" title="Continue a review from a .pltpy file">Import .pltpy</button>
+      <input type="file" id="file-import" accept=".pltpy,.md,.txt" hidden />
     </div>
   </div>
 </div>
@@ -645,8 +683,9 @@ const STEPS=[
  {n:5,k:"05",label:"Report",desc:"View your entire report as it will appear as PDF. Make final adaptations, or choose for AI polishing in step 6."},
  {n:6,k:"06",label:"AI polishing",optional:true,desc:"If you would like to have your text refined with the help of AI, provide your own model key — or generate a prompt for you to copy into your favourite chat app."}
 ];
-const SECTIONS=["Introduction","Methods","Results","Discussion"];
+const SECTIONS=["Introduction","Methods","Results","Discussion","Figures","Tables"];
 const LEGACY_SECTIONS=["Introduction","Methods","Results","Discussion","General"];
+const LEGACY_SECTIONS2=["Introduction","Methods","Results","Discussion"];
 const PRE_TAGS=[
  {name:"typo",sev:"minor"},{name:"grammar / language",sev:"minor"},{name:"formatting",sev:"minor"},
  {name:"reference style",sev:"minor"},{name:"figure / table clarity",sev:"minor"},
@@ -665,6 +704,52 @@ const AI_FALLBACK=[
  {id:"ai-claim",code:"T8",q:"Do the clinical claims match what was actually tested?",hint:"The common failure is overreach from a retrospective AUC to a bedside benefit claim.",sev:"major",sec:"Discussion",src:"DECIDE-AI · interpretation"}
 ];
 let AI_TPL=AI_FALLBACK.slice();
+/* 1–5 scale: 1–2 = concern (old "No") → goes to report/PDF · 4–5 = addressed (old "Yes") → stays out of PDF · 3 = partial → out · unclear/na/"" → out of PDF */
+const AI_VALS=[
+ {v:"1",t:"1 · not addressed"},{v:"2",t:"2 · poor"},{v:"3",t:"3 · partial"},
+ {v:"4",t:"4 · adequate"},{v:"5",t:"5 · excellent"},{v:"unclear",t:"Unclear"},{v:"na",t:"N/A"}
+];
+const AI_VAL_LABEL={1:"1 — not addressed",2:"2 — poor",3:"3 — partial",4:"4 — adequate",5:"5 — excellent",unclear:"UNCLEAR",na:"N/A"};
+const aiIsConcern=a=>!!a&&(a.val==="1"||a.val==="2");
+const aiIsUnclear=a=>!!a&&a.val==="unclear";
+function aiSecOf(t){
+  const raw=String((t&&t.sec)||"Methods");
+  const listed=sectionsList();
+  if(listed.includes(raw))return raw;
+  const first=raw.split("/")[0].trim();
+  if(listed.includes(first))return first;
+  const low=raw.toLowerCase();
+  if(/figur|image|claim|stard/.test(low))return listed.includes("Figures")?"Figures":"Methods";
+  if(/table/.test(low))return listed.includes("Tables")?"Tables":"Methods";
+  if(/result/.test(low))return "Results";
+  if(/disc/.test(low))return "Discussion";
+  if(/intro|aim|title|background/.test(low))return "Introduction";
+  if(/method|code|suppl|reproduc|resource|hyperparameter|missing|transfer|open/.test(low))return "Methods";
+  return "Methods";
+}
+/* EQUATOR Network — AI / ML reporting guidelines, scraped 11 Oct 2026 from
+   https://www.equator-network.org/reporting-guidelines-study-design/artificial-intelligence-machine-learning-studies/ */
+const EQUATOR_ACCESSED="11 Oct 2026";
+const EQUATOR_LIB="https://www.equator-network.org/reporting-guidelines-study-design/artificial-intelligence-machine-learning-studies/";
+const EQUATOR=[
+ {ab:"TRIPOD+AI",use:"Prediction models (regression or ML)",url:"https://www.equator-network.org/reporting-guidelines/tripod-statement/"},
+ {ab:"CLAIM 2024",use:"Medical imaging AI",url:"https://www.equator-network.org/reporting-guidelines/checklist-for-artificial-intelligence-in-medical-imaging-claim-a-guide-for-authors-and-reviewers/"},
+ {ab:"CONSORT-AI",use:"RCT reports with AI intervention",url:"https://www.equator-network.org/reporting-guidelines/consort-artificial-intelligence/"},
+ {ab:"SPIRIT-AI",use:"RCT protocols with AI intervention",url:"https://www.equator-network.org/reporting-guidelines/spirit-artificial-intelligence/"},
+ {ab:"DECIDE-AI",use:"Early live clinical evaluation of AI decision support",url:"https://www.equator-network.org/reporting-guidelines/reporting-guideline-for-the-early-stage-clinical-evaluation-of-decision-support-systems-driven-by-artificial-intelligence-decide-ai/"},
+ {ab:"STARD-AI",use:"Diagnostic-accuracy studies with AI",url:"https://www.equator-network.org/reporting-guidelines/the-stard-ai-reporting-guideline-for-diagnostic-accuracy-studies-using-artificial-intelligence/"},
+ {ab:"MI-CLAIM",use:"Minimum information about clinical AI modelling",url:"https://www.equator-network.org/reporting-guidelines/minimum-information-about-clinical-artificial-intelligence-modeling-the-mi-claim-checklist/"},
+ {ab:"TRIPOD-LLM",use:"Studies using large language models",url:"https://www.equator-network.org/reporting-guidelines/the-tripod-llm-reporting-guideline-for-studies-using-large-language-models/"}
+];
+/* Springer Nature — AI use in peer review, risk-assessment table.
+   Source: https://www.springernature.com/gp/policies/editorial-policies/using-ai-in-peer-review (accessed 11 Oct 2026) */
+const SPRINGER_ACCESSED="11 Oct 2026";
+const SPRINGER_URL="https://www.springernature.com/gp/policies/editorial-policies/using-ai-in-peer-review";
+const SPRINGER_ROWS=[
+ {lvl:"green",risk:"Green — low risk",means:"AI supports communication and organisation without shaping evaluative judgement",typical:"Improving clarity, tone, structure of reviewer comments; organising notes; generating checklists (e.g. CONSORT, PRISMA); summarising reviewer notes",decl:"Describe use (e.g. language or structure support) and take accountability for all content in report"},
+ {lvl:"amber",risk:"Amber — requires caution and care",means:"AI supports analytical reflection; may influence how critique is framed without robust human oversight and verification",typical:"Identifying areas to probe; exploring limitations; comparing to general literature patterns; stress-testing reviewer reasoning",decl:"Describe how AI was used, confirm independent judgement and take accountability for all content in report"},
+ {lvl:"red",risk:"Red — not permitted",means:"AI replaces reviewer judgement or compromises confidentiality or independence",typical:"Uploading manuscripts to public/unsecured tools; generating full review reports; producing accept/reject recommendations; delegating critique to AI",decl:"Not permitted"}
+];
 const GLOSSARY=[
 ["Accountability","Being answerable for one's actions and decisions. Researchers take responsibility for the integrity of their work and its impacts."],
 ["Algorithmic bias","Systematic errors in an AI system that create unfair outcomes, often reflecting biases in training data or design."],
@@ -697,26 +782,59 @@ const GLOSSARY=[
 ["Large language model","AI trained on vast text to understand and generate human language."]
 ];
 
-const base=()=>({step:1,ms:"",
+const LIB_KEY="iaims-reviews-v1", CUR_KEY="iaims-review-current-v1";
+const base=()=>({id:uid(),createdAt:Date.now(),updatedAt:Date.now(),step:1,ms:"",
  invite:{expert:"",conflict:"",time:"",decision:""},
  notes:[],customTags:[],
  sections:SECTIONS.slice(),
  ai:{on:null,ans:{}},
  report:{intro:"",letter:""},rec:"",done:false,
+ core:[],
+ springer:{level:"",tool:"",detail:""},
+ history:[{t:new Date().toISOString(),ev:"Review created"}],
  polish:{route:"",base:"https://api.openai.com/v1",key:"",model:"",models:[],out:"",state:"idle",msg:"",api:"openai",provider:"openai"}});
+function logHist(ev,detail){
+  try{
+    S.history=S.history||[];
+    S.history.push({t:new Date().toISOString(),ev:ev,detail:String(detail||"").slice(0,220)});
+    if(S.history.length>300)S.history=S.history.slice(-300);
+  }catch(e){}
+}
 let S=base();
-try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);S=Object.assign(base(),p);S.invite=Object.assign(base().invite,p.invite||{});S.ai=Object.assign({on:null,ans:{}},p.ai||{});S.report=Object.assign({intro:"",letter:""},p.report||{});S.polish=Object.assign(base().polish,p.polish||{});}}catch(e){}
+function readLib(){try{const r=localStorage.getItem(LIB_KEY);if(r){const o=JSON.parse(r);if(o&&typeof o==="object")return o;}}catch(e){}return {};}
+function writeLib(){try{const lib=readLib();lib[S.id]=S;try{localStorage.setItem(LIB_KEY,JSON.stringify(lib));}catch(e){}}catch(e){}}
+/* load: prefer current-id pointer, fall back to legacy single-review key */
+try{
+  const cur=localStorage.getItem(CUR_KEY);
+  const lib=readLib();
+  let loaded=null;
+  if(cur&&lib[cur])loaded=lib[cur];
+  if(!loaded){const r=localStorage.getItem(KEY);if(r)loaded=JSON.parse(r);}
+  if(!loaded){const ids=Object.keys(lib);if(ids.length)loaded=lib[ids.sort((a,b)=>(lib[b].updatedAt||0)-(lib[a].updatedAt||0))[0]];}
+  if(loaded){const b=base();S=Object.assign(b,loaded);S.invite=Object.assign(base().invite,loaded.invite||{});S.ai=Object.assign({on:null,ans:{}},loaded.ai||{});S.report=Object.assign({intro:"",letter:""},loaded.report||{});S.polish=Object.assign(base().polish,loaded.polish||{});S.springer=Object.assign({level:"",tool:"",detail:""},loaded.springer||{});if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];if(!S.id)S.id=uid();if(!S.createdAt)S.createdAt=Date.now();}
+}catch(e){}
 if(!Array.isArray(S.sections)||!S.sections.length)S.sections=SECTIONS.slice();
-/* migrate legacy default sections (General no longer a default paper section) */
-if(Array.isArray(S.sections)&&S.sections.join("|")===LEGACY_SECTIONS.join("|"))S.sections=SECTIONS.slice();
+/* migrate legacy defaults → new defaults (adds Figures + Tables) */
+if(Array.isArray(S.sections)&&(S.sections.join("|")===LEGACY_SECTIONS.join("|")||S.sections.join("|")===LEGACY_SECTIONS2.join("|")))S.sections=SECTIONS.slice();
+if(!Array.isArray(S.core))S.core=[];
+if(!Array.isArray(S.history))S.history=[];
+if(!S.springer)S.springer={level:"",tool:"",detail:""};
 /* migrate legacy invite keys (ex/cf/tm were written but never read) */
 if(S.invite.ex){if(!S.invite.expert)S.invite.expert=S.invite.ex;delete S.invite.ex;}
 if(S.invite.cf){if(!S.invite.conflict)S.invite.conflict=S.invite.cf;delete S.invite.cf;}
 if(S.invite.tm){if(!S.invite.time)S.invite.time=S.invite.tm;delete S.invite.tm;}
+/* migrate legacy yes/no/unclear answers → 1–5 scale (no→2, yes→4, unclear stays) */
+try{Object.keys(S.ai.ans||{}).forEach(k=>{const a=S.ai.ans[k];if(!a||!a.val)return;
+  if(a.val==="no")a.val="2";else if(a.val==="yes")a.val="4";});}catch(e){}
 let timer=null;
-const save=()=>{clearTimeout(timer);timer=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
- const st=$("#savestate");if(st){$("#savetext").textContent="Saved "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
- st.animate([{opacity:1},{opacity:.35},{opacity:1}],{duration:320,easing:"ease-out"});},260);};
+const save=()=>{clearTimeout(timer);timer=setTimeout(()=>{
+  S.updatedAt=Date.now();
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+  writeLib();
+  try{localStorage.setItem(CUR_KEY,S.id);}catch(e){}
+  const st=$("#savestate");if(st){$("#savetext").textContent="Saved "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+  try{st.animate([{opacity:1},{opacity:.35},{opacity:1}],{duration:320,easing:"ease-out"});}catch(e){}},260);};
+const saveNow=()=>{S.updatedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}writeLib();try{localStorage.setItem(CUR_KEY,S.id);}catch(e){}};
 
 /* ---- device stats + GoatCounter events (visits and report saves only) ---- */
 const SKEY="iaims-stats-v1";
@@ -734,8 +852,10 @@ const sevOf=n=>{if(n.stamp)return n.stamp;if(n.severity)return n.severity;const 
 const live=()=>S.notes.filter(n=>n.status!=="rejected");
 const aiOn=()=>S.ai.on===true;
 const aiItems=()=>AI_TPL;
-const aiConcerns=sev=>!aiOn()?[]:aiItems().map(t=>({t,a:(S.ai.ans||{})[t.id]})).filter(x=>x.a&&(x.a.val==="no"||x.a.val==="unclear")&&(x.t.sev||"major")===sev);
-const aiPassed=()=>aiItems().filter(t=>((S.ai.ans||{})[t.id]||{}).val==="yes");
+const aiConcerns=sev=>!aiOn()?[]:aiItems().map(t=>({t,a:(S.ai.ans||{})[t.id]})).filter(x=>aiIsConcern(x.a)&&(x.t.sev||"major")===sev);
+const aiUnclear=()=>!aiOn()?[]:aiItems().map(t=>({t,a:(S.ai.ans||{})[t.id]})).filter(x=>aiIsUnclear(x.a));
+const aiScored=()=>aiItems().filter(t=>{const v=((S.ai.ans||{})[t.id]||{}).val;return v==="1"||v==="2"||v==="3"||v==="4"||v==="5"||v==="unclear"||v==="na";});
+const isCore=id=>(S.core||[]).includes(id);
 async function loadTpl(){try{const r=await fetch("assets/ai-checklist-template.json",{cache:"no-store"});if(!r.ok)return;const j=await r.json();
  if(Array.isArray(j)&&j.length&&j.every(x=>x&&x.id&&x.q)){AI_TPL=j.map((x,i)=>({code:x.code||("T"+(i+1)),src:x.src||"AI consideration",sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:x.id}));if(S.step===4||S.step===5)render();}}catch(e){}}
 
@@ -940,7 +1060,7 @@ function vTriage(){
     '<div class="fig" data-s="major"><div class="n">'+c.maj+'</div><div class="l">Major</div></div>'+
     '<div class="fig" data-s="minor"><div class="n">'+c.min+'</div><div class="l">Minor</div></div>'+
   '</div>'+
-  '<div class="note-blk"><b>Stamp each reading Major or Minor.</b> Yellow is Minor, red is Major, and every mark carries its MAJ / MIN code so the marking survives without colour. Striking a reading through is not deleting it — struck readings stay visible and stay out of the report. Tags (＋ Mark) are optional — they help the AI polish stage later.</div>'+
+  '<div class="note-blk"><b>Stamp each reading Major or Minor.</b> Yellow is Minor, red is Major, and every mark carries its MAJ / MIN code so the marking survives without colour. Striking a reading through is not deleting it — struck readings stay visible and stay out of the report. Tags (＋ Mark) are optional — they help the AI polish stage later. <b>★ Core:</b> pick up to 3 core concerns — they render bold in the report and PDF.</div>'+
   '<div class="strip">'+
     '<div class="f"><label for="ctName">Your own tag</label><input class="inp" id="ctName" placeholder="e.g. unclear figure legend" autocomplete="off"></div>'+
     '<div class="f narrow"><label for="ctSev">Weight</label><select class="inp" id="ctSev"><option value="minor">minor</option><option value="major">major</option></select></div>'+
@@ -957,49 +1077,56 @@ function vTriage(){
    '<button type="button" class="btn sec sm" id="addN2">Add comment</button>'+
   '</div>'+
   (S.notes.length?[...S.notes].sort((a,b)=>(parseInt(a.line)||99999)-(parseInt(b.line)||99999)).map(n=>{
-    const s=sevOf(n);
-    return '<article class="note'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+'" data-card="'+n.id+'">'+
+    const s=sevOf(n);const core=isCore(n.id);
+    return '<article class="note'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+(core?" is-core":"")+'" data-card="'+n.id+'">'+
       '<div class="note-schema"><span class="note-line">'+esc(lineLabel(n))+'</span><span class="note-sec">'+esc(n.section||"General")+'</span>'+
-        (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">untagged</span>')+'</div>'+
+        (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">untagged</span>')+(core?'<span class="sevtag" data-s="none">★ CORE</span>':"")+'</div>'+
       '<div class="note-body"><p class="note-text clickable" data-edit="'+n.id+'" title="Click to edit">'+esc(n.text)+'</p>'+
         tagRow(n)+
         '<div class="note-meta"><div class="note-acts">'+
           '<button type="button" class="mark m-maj" aria-pressed="'+(sevOf(n)==="major"&&n.status!=="rejected")+'" data-sev-btn="major" data-id="'+n.id+'">Major</button>'+
           '<button type="button" class="mark m-min" aria-pressed="'+(sevOf(n)==="minor"&&n.status!=="rejected")+'" data-sev-btn="minor" data-id="'+n.id+'">Minor</button>'+
+          '<button type="button" class="mark corebtn" aria-pressed="'+core+'" data-core="'+n.id+'" title="Mark as one of 3 core concerns">★ Core</button>'+
           '<button type="button" class="mark m-rej" aria-pressed="'+(n.status==="rejected")+'" data-rej="'+n.id+'">'+(n.status==="rejected"?"Restore":"Strike")+'</button>'+
         '</div></div></div></article>';
   }).join(""):'<div class="empty">Nothing to triage yet. Add your first-pass readings in the previous step.</div>');
 }
 
 /* ---- 04 appraisal ---- */
+function equatorPanel(){
+  return '<div class="eqpanel"><h3>EQUATOR Network — pick the reporting guideline that fits this study</h3>'+
+  '<p>Checklist items below are prompts, not a substitute for the full guideline. Open the matching EQUATOR checklist and verify each flagged point against it. Library: <a href="'+EQUATOR_LIB+'" target="_blank" rel="noopener">AI / ML studies on EQUATOR</a> · main site <a href="https://www.equator-network.org/" target="_blank" rel="noopener">equator-network.org</a> · scraped '+esc(EQUATOR_ACCESSED)+'.</p>'+
+  '<div class="eqlinks">'+EQUATOR.map(g=>'<a href="'+g.url+'" target="_blank" rel="noopener" title="'+esc(g.use)+'">'+esc(g.ab)+'</a>').join("")+'</div></div>';
+}
 function vAppraise(){
   let h=head(4);
   h+='<div class="routes">'+
-    [[true,"Run the checklist","Ask each item in turn. Anything not answered Yes becomes a report point."],
+    [[true,"Run the checklist","Score each item 1–5. Only scores 1–2 become report points, inside Major/Minor."],
      [false,"Skip it","The report works either way. You can open this checklist at any time."]].map(r=>
      '<label class="route" data-checked="'+(S.ai.on===r[0])+'"><input type="radio" name="aiOn" value="'+(r[0]?"yes":"no")+'"'+(S.ai.on===r[0]?" checked":"")+'>'+
      '<span class="route-k">'+(r[0]?"AI checklist":"No checklist")+'</span><span class="route-t">'+r[1]+'</span><span class="route-d">'+r[2]+'</span></label>').join("")+
    '</div>';
   if(S.ai.on===true){
-    const fl=aiConcerns("major").length+aiConcerns("minor").length,ps=aiPassed().length,tot=aiItems().length;
+    h+=equatorPanel();
+    const fl=aiConcerns("major").length+aiConcerns("minor").length,un=aiUnclear().length,sc=aiScored().length,tot=aiItems().length;
     h+='<div class="figures">'+
-      '<div class="fig" data-s="major"><div class="n">'+fl+'</div><div class="l">Flagged</div></div>'+
-      '<div class="fig"><div class="n">'+ps+'</div><div class="l">Passed</div></div>'+
-      '<div class="fig"><div class="n">'+(tot-ps-fl)+'</div><div class="l">Unanswered</div></div>'+
+      '<div class="fig" data-s="major"><div class="n">'+fl+'</div><div class="l">Flagged (1–2)</div></div>'+
+      '<div class="fig"><div class="n">'+un+'</div><div class="l">Unclear</div></div>'+
+      '<div class="fig"><div class="n">'+sc+'</div><div class="l">Scored</div></div>'+
       '<div class="fig"><div class="n">'+tot+'</div><div class="l">Items</div></div>'+
     '</div>';
-    h+='<div class="note-blk"><b>No and Unclear merge into the report.</b> Each flagged item lands in its section as a report point carrying the item code and a purple mark, so the editor can see what prompted it. Yes answers are listed as checks passed.</div>';
-    h+='<div class="table"><div class="thead"><span>Item</span><span>Question</span><span>Answer</span></div>'+
+    h+='<div class="note-blk"><b>Only scores 1–2 merge into the report.</b> Each flagged item lands inside its Major / Minor section (Methods, Results, …) carrying the item code and score, so the editor sees what prompted it. Scores 3–5, Unclear and N/A stay in this step and never reach the PDF — scores 4–5 mean addressed, Unclear means cannot tell.</div>';
+    h+='<div class="table"><div class="thead"><span>Item</span><span>Question</span><span>Score 1–5 · Unclear · N/A</span></div>'+
       aiItems().map(t=>{
         const a=(S.ai.ans||{})[t.id]||{val:"",note:""};
-        const fl2=a.val==="no"||a.val==="unclear";
+        const fl2=aiIsConcern(a);
         return '<div class="trow'+(fl2?" is-flagged":"")+'" data-sev="'+esc(t.sev)+'">'+
           '<div class="tcell-code"><b>'+esc(t.code||t.id)+'</b>'+esc(t.sev)+'<br>'+esc(t.sec)+'</div>'+
           '<div class="tcell-body"><p class="q">'+esc(t.q)+'</p><p class="hint">'+esc(t.hint)+'</p>'+
             '<p class="src">'+esc(t.src||"")+'</p>'+
             '<input class="note-in" data-ainote="'+t.id+'" placeholder="Note for the editor (optional)" value="'+esc(a.note||"")+'"></div>'+
-          '<div class="tcell-ans">'+["yes","no","unclear"].map(v=>
-            '<button type="button" data-ai="'+t.id+'" data-v="'+v+'" aria-pressed="'+(a.val===v)+'">'+v+'</button>').join("")+'</div>'+
+          '<div class="tcell-ans">'+AI_VALS.map(o=>
+            '<button type="button" data-ai="'+t.id+'" data-v="'+o.v+'" aria-pressed="'+(a.val===o.v)+'" title="'+esc(o.t)+'">'+esc(o.v==="unclear"?"unclear":o.v==="na"?"n/a":o.v)+'</button>').join("")+'</div>'+
         '</div>';
       }).join("")+'</div>';
   }else if(S.ai.on===false){
@@ -1028,6 +1155,18 @@ function groups(){
   });
   return {g,un};
 }
+function springerPanel(){
+  const sp=S.springer||{level:"",tool:"",detail:""};
+  let h='<div class="rsect"><div class="rsect-h"><span>AI-use declaration — Springer Nature table</span></div>';
+  h+='<p style="font-size:13px;color:var(--ink-2);line-height:1.6">Declare any AI support used while preparing this review, per Springer Nature\'s risk-assessment framework for peer review. Source: <a href="'+SPRINGER_URL+'" target="_blank" rel="noopener">AI use in peer review, Springer Nature</a> (accessed '+esc(SPRINGER_ACCESSED)+'). This declaration is exported into TXT / PDF / .pltpy.</p>';
+  h+='<table class="sn-table"><tr><th>Risk</th><th>What this means</th><th>Typical use</th><th>Declaration</th></tr>'+
+    SPRINGER_ROWS.map(r=>'<tr data-lvl="'+r.lvl+'"><td><b>'+esc(r.risk)+'</b></td><td>'+esc(r.means)+'</td><td>'+esc(r.typical)+'</td><td>'+esc(r.decl)+'</td></tr>').join("")+'</table>';
+  h+='<div class="strip"><div class="f narrow"><label for="snLevel">My AI use</label><select class="inp" id="snLevel">'+
+    ["", "green", "amber", "red", "none"].map(v=>'<option value="'+v+'"'+(sp.level===v?" selected":"")+'>'+(v===""?"Choose…":v==="none"?"No AI used":v[0].toUpperCase()+v.slice(1))+'</option>').join("")+'</select></div>'+
+    '<div class="f"><label for="snTool">Tool (if any)</label><input class="inp" id="snTool" placeholder="e.g. local notes organiser" value="'+esc(sp.tool||"")+'"></div>'+
+    '<div class="f"><label for="snDetail">What did it do?</label><input class="inp" id="snDetail" placeholder="e.g. clarity and structure of my own comments only" value="'+esc(sp.detail||"")+'"></div></div>';
+  return h+'</div>';
+}
 function vReport(){
   const {g,un}=groups();
   let h=head(5);
@@ -1047,36 +1186,41 @@ function vReport(){
     /* paper sections first, then any leftover buckets (e.g. legacy General) */
     const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
     order.forEach(sec=>{
-      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>(x.t.sec||"Methods")===sec);
+      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===sec);
       if(!arr.length&&!ai.length)return;
       s+='<p class="rsub">'+esc(sec)+'</p>';
-      arr.forEach(n=>{s+='<div class="rline"><div class="rline-l"><b>'+esc(lineLabel(n))+'</b>'+esc(n.section||"")+'</div>'+
-        '<div class="rline-v" data-r="'+n.id+'">'+esc(n.text)+((n.tags||[]).length?'<span class="sevtag" data-s="'+esc(sev)+'" style="margin-left:8px">'+esc(n.tags[0])+'</span>':"")+'</div>'+
+      arr.forEach(n=>{const core=isCore(n.id);
+        s+='<div class="rline'+(core?" is-core":"")+'"><div class="rline-l"><b>'+esc(lineLabel(n))+'</b>'+esc(n.section||"")+(core?'<br>★ CORE':"")+'</div>'+
+        '<div class="rline-v" data-r="'+n.id+'">'+(core?"<b>":"")+esc(n.text)+(core?"</b>":"")+((n.tags||[]).length?'<span class="sevtag" data-s="'+esc(sev)+'" style="margin-left:8px">'+esc(n.tags[0])+'</span>':"")+'</div>'+
         '<button type="button" class="rline-x" data-rej="'+n.id+'" title="Strike this point">×</button></div>';});
-      ai.forEach(({t,a})=>{s+='<div class="rline is-ai"><div class="rline-l"><b>'+esc(t.code||t.id)+'</b>'+esc(a.val.toUpperCase())+'</div>'+
-        '<div class="rline-v">'+esc(t.q)+(a.note?' — '+esc(a.note):"")+'</div><span></span></div>';});
+      ai.forEach(({t,a})=>{s+='<div class="rline is-ai"><div class="rline-l"><b>'+esc(t.code||t.id)+'</b>SCORE '+esc(a.val)+'</div>'+
+        '<div class="rline-v"><b>'+esc(t.q)+'</b>'+(a.note?' — '+esc(a.note):"")+'</div><span></span></div>';});
       s+='<button type="button" class="addrow" data-addline data-sec="'+esc(sec)+'" data-sev="'+sev+'">+ Add a '+sev+' point in '+esc(sec)+'</button>';
     });
     return s+'</div>';
   };
   h+=block("Major concerns","major",g.major);
   h+=block("Minor points","minor",g.minor);
-  const ps=aiPassed();
-  if(aiOn()&&ps.length)h+='<div class="rsect"><div class="rsect-h"><span>AI checklist checks passed</span></div><div class="passlist">'+
-    ps.map(t=>'✓ '+esc(t.code||t.id)+' — '+esc(t.q)).join("<br>")+'</div></div>';
+  /* No separate AI section: only scores 1–2 appear above, inside Major/Minor. Scores 3–5 / Unclear / N/A never reach the report. */
   h+='<div class="rsect letter-sect"><div class="rsect-h"><span>Letter to the editor</span></div>'+
     '<div class="rline"><div class="rline-l"><b>Private</b></div><div class="rline-v" data-r="letter">'+
     (S.report.letter?esc(S.report.letter):'<span class="rempty">Click to add a short private note to the editor — the part the authors should not read.</span>')+
     '</div><span></span></div></div>';
   h+='</div></div>';
+  h+=springerPanel();
+  const hist=(S.history||[]).slice(-12).reverse();
+  h+='<div class="rsect"><div class="rsect-h"><span>Version history — timestamped</span><span>'+(S.history||[]).length+' events</span></div><div class="hist">'+
+    (hist.length?hist.map(e=>esc((e.t||"").slice(0,16).replace("T"," "))+" · "+esc(e.ev)+(e.detail?" — "+esc(e.detail):"")).join("<br>"):"No history yet.")+
+    '</div><p style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Full history is exported into the .pltpy file.</p></div>';
   h+='<span style="font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:9px">Recommendation</span>'+
    '<div class="recs">'+[["accept","Accept","As it stands"],["minor","Minor revision","Fixable at revision"],["major","Major revision","Substantive rework"],["reject","Reject","Not salvageable"]].map(r=>
     '<label class="rec" data-checked="'+(S.rec===r[0])+'"><input type="radio" name="rec" value="'+r[0]+'"'+(S.rec===r[0]?" checked":"")+'>'+
     '<span class="rec-t">'+r[1]+'</span><span class="rec-d">'+r[2]+'</span></label>').join("")+'</div>';
   h+='<div class="foot" style="margin-top:20px"><p class="meta" id="rmeta">'+
-    live().length+' report point'+(live().length===1?"":"s")+' in the hierarchy'+(aiOn()?' · checklist flagged '+(aiConcerns("major").length+aiConcerns("minor").length):'')+'</p>'+
+    live().length+' report point'+(live().length===1?"":"s")+' in the hierarchy'+(aiOn()?' · checklist flagged '+(aiConcerns("major").length+aiConcerns("minor").length):'')+(S.core&&S.core.length?' · ★ '+S.core.length+'/3 core':"")+'</p>'+
     '<div class="acts"><button type="button" class="btn sec sm" id="btn-copy">Copy report</button>'+
     '<button type="button" class="btn sec sm" id="btn-txt">Save as TXT</button>'+
+    '<button type="button" class="btn sec sm" id="btn-pltpy">Save .pltpy</button>'+
     '<button type="button" class="btn sm" id="btn-pdf">Save as PDF</button></div></div>';
   return h;
 }
@@ -1113,29 +1257,95 @@ const POLISH_SYS=[
 "Return the improved report in the same Markdown structure: Intro, then Major concerns, then Minor points, each split by Introduction / Methods / Results / Discussion, then Letter to the editor, then Recommendation.",
 "Return only the improved report. No preamble, no summary of changes, no commentary."].join(" ");
 
+function springerText(){
+  const sp=S.springer||{};
+  if(!sp.level||sp.level==="none")return sp.level==="none"?"No AI was used to prepare this review.":"AI-use declaration: not set.";
+  const lbl=sp.level?sp.level[0].toUpperCase()+sp.level.slice(1):"";
+  return "Springer Nature AI-use declaration ("+lbl+"): "+(sp.tool||"tool not named")+(sp.detail?" — "+sp.detail:"")+
+    " [Source: Springer Nature, AI use in peer review, "+SPRINGER_URL+", accessed "+SPRINGER_ACCESSED+"]";
+}
 function draftText(){
   const {g}=groups();
   let t="# Peer-review report\n\nManuscript: "+(S.ms||"untitled")+"\n\n";
   t+="## Intro\n"+(S.report.intro||"")+"\n\n";
   const sec=(title,obj,sev)=>{
     let out="";
-    sectionsList().forEach(s=>{const a=obj[s]||[],ai=aiConcerns(sev).filter(x=>(x.t.sec||"Methods")===s);
+    const listed=sectionsList();
+    const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
+    order.forEach(s=>{const a=obj[s]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===s);
       if(!a.length&&!ai.length)return;
       out+="\n### "+s+"\n";let i=0;
-      a.forEach(n=>{i++;out+=i+". ["+(n.line?("L"+n.line):"General")+"] "+n.text+((n.tags||[]).length?" ("+n.tags.join(", ")+")":"")+"\n";});
-      ai.forEach(({t:it,a:an})=>{i++;out+=i+". ["+(it.code||it.id)+" \u2014 "+an.val.toUpperCase()+"] "+it.q+(an.note?" \u2014 "+an.note:"")+"\n";});
+      a.forEach(n=>{i++;const core=isCore(n.id);
+        out+=i+". ["+(n.line?("L"+n.line):"General")+"] "+(core?"**CORE CONCERN — ":"")+n.text+(core?"**":"")+((n.tags||[]).length?" ("+n.tags.join(", ")+")":"")+"\n";});
+      ai.forEach(({t:it,a:an})=>{i++;out+=i+". ["+(it.code||it.id)+" — score "+an.val+"] "+it.q+(an.note?" — "+an.note:"")+"\n";});
     });
     return out?("## "+title+"\n"+out):"";
   };
 
   t+=sec("Major concerns",g.major,"major");
   t+=sec("Minor points",g.minor,"minor");
-  const ps=aiPassed();
-  if(aiOn()&&ps.length)t+="\n## AI checklist checks passed\n"+ps.map(x=>"- "+(x.code||x.id)+" — "+x.q).join("\n")+"\n";
-  else if(S.ai.on===false)t+="\n## AI checklist\nSkipped (optional).\n";
+  if(S.ai.on===false)t+="\n## AI checklist\nSkipped (optional).\n";
+  else if(aiOn())t+="\n## AI checklist\nOnly scores 1–2 are listed above inside Major/Minor. Scores 3–5, Unclear and N/A are not exported. EQUATOR: "+EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+").\n";
   t+="\n## Letter to the editor\n"+(S.report.letter||"")+"\n";
   t+="\nRecommendation: "+(S.rec||"—")+"\n";
+  t+="\n## AI-use declaration\n"+springerText()+"\n";
   return t;
+}
+/* ---- .pltpy file: YAML frontmatter + Markdown + timestamped history + embedded state ---- */
+function yamlEsc(v){return '"'+String(v==null?"":v).replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g," ")+'"';}
+function pltpyText(){
+  const c=counters();
+  const fm=["---",
+   "format: pltpy",
+   "pltpy_version: 1",
+   "id: "+yamlEsc(S.id||""),
+   "manuscript: "+yamlEsc(S.ms||"Untitled manuscript"),
+   "created: "+yamlEsc(new Date(S.createdAt||Date.now()).toISOString()),
+   "updated: "+yamlEsc(new Date(S.updatedAt||Date.now()).toISOString()),
+   "step: "+(S.step||1),
+   "recommendation: "+yamlEsc(S.rec||""),
+   "sections: ["+sectionsList().map(s=>yamlEsc(s)).join(", ")+"]",
+   "counts: {total: "+S.notes.length+", major: "+c.maj+", minor: "+c.min+", untagged: "+c.un+", rejected: "+c.rj+"}",
+   "ai_checklist: "+(S.ai.on===true?"run":S.ai.on===false?"skipped":"not-opened"),
+   "core_concerns: ["+(S.core||[]).map(id=>yamlEsc(id)).join(", ")+"]",
+   "springer_ai_use: "+yamlEsc((S.springer||{}).level||""),
+   "springer_ref: "+yamlEsc(SPRINGER_URL+" (accessed "+SPRINGER_ACCESSED+")"),
+   "equator_ref: "+yamlEsc(EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+")"),
+   "history_events: "+((S.history||[]).length),
+   "---"].join("\n");
+  let md="\n# Peer-review report — "+(S.ms||"Untitled manuscript")+"\n\n";
+  md+="Exported "+new Date().toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})+" · PlatyPeer (.pltpy)\n\n";
+  md+=draftText()+"\n\n## All comments (timestamped version history)\n\n";
+  const notes=[...S.notes].sort((a,b)=>(a.at||0)-(b.at||0));
+  if(!notes.length)md+="_No comments saved._\n";
+  else notes.forEach(n=>{
+    const when=n.at?new Date(n.at).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
+    md+="- ["+when+"] ["+(n.line?("L"+n.line):"General")+"] ["+esc(n.section||"")+"] ["+(sevOf(n)||"untagged")+"]"+(isCore(n.id)?" [★ CORE]":"")+(n.status==="rejected"?" [struck]":"")+" "+String(n.text||"").replace(/\n/g," ")+"\n";
+  });
+  md+="\n## Event history\n\n";
+  (S.history||[]).forEach(e=>{md+="- "+(e.t||"")+" · "+e.ev+(e.detail?" — "+e.detail:"")+"\n";});
+  md+="\n```pltpy-state\n"+btoa(unescape(encodeURIComponent(JSON.stringify(S))))+"\n```\n";
+  return fm+md;
+}
+function pltpyFileName(){
+  const slug=(S.ms||"peer-review").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48)||"peer-review";
+  return slug+".pltpy";
+}
+function savePltpy(){
+  try{
+    saveNow();logHist("Export .pltpy");saveNow();
+    const blob=new Blob([pltpyText()],{type:"text/markdown;charset=utf-8"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=pltpyFileName();
+    document.body.appendChild(a);a.click();setTimeout(()=>{try{URL.revokeObjectURL(a.href);}catch(e){}a.remove();},400);
+    hitEvent("txt","report_pltpy");
+  }catch(e){openModal("Could not save","The .pltpy file could not be generated. Use Copy report instead.","OK",closeModal);}
+}
+function parsePltpy(text){
+  const m=String(text||"").match(/```pltpy-state\s+([A-Za-z0-9+/=\s]+)\s*```/);
+  if(!m)throw new Error("No embedded review state found — is this a .pltpy file exported by PlatyPeer?");
+  const j=JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g,"")))));
+  if(!j||typeof j!=="object"||!Array.isArray(j.notes))throw new Error("Unrecognised review state.");
+  return j;
 }
 function promptText(){
   return "You are helping me polish a peer-review report I have written for a healthcare-AI manuscript.\n\n"+
@@ -1242,16 +1452,19 @@ function wire(){
     S.invite.decision=r.value;save();render();}));
   const cta=F.querySelector("#cta-read");
   if(cta)cta.addEventListener("click",()=>go(2));
-  Q('input[name="rec"]').forEach(r=>r.addEventListener("change",()=>{S.rec=r.value;save();render();}));
+  Q('input[name="rec"]').forEach(r=>r.addEventListener("change",()=>{S.rec=r.value;logHist("Recommendation set",r.value);save();render();}));
   Q('input[name="aiOn"]').forEach(r=>r.addEventListener("change",()=>{S.ai.on=(r.value==="yes");
     if(r.value==="yes")hitEvent("checklist","checklist_run");
+    logHist(r.value==="yes"?"AI checklist started":"AI checklist skipped");
     save();render();}));
   Q('input[name="route"]').forEach(r=>r.addEventListener("change",()=>{S.polish.route=r.value;S.polish.out="";S.polish.state="idle";S.polish.msg="";save();render();}));
 
   aiItems().forEach(t=>{
     Q('[data-ai="'+t.id+'"]').forEach(b=>b.addEventListener("click",()=>{
       const v=b.getAttribute("data-v");
-      S.ai.ans[t.id]=Object.assign({},S.ai.ans[t.id],{val:((S.ai.ans[t.id]||{}).val===v?"":v)});
+      const cur=((S.ai.ans[t.id]||{}).val===v?"":v);
+      S.ai.ans[t.id]=Object.assign({},S.ai.ans[t.id],{val:cur});
+      if(cur)logHist("Checklist scored",(t.code||t.id)+" → "+cur);
       save();render();}));
     Q('[data-ainote="'+t.id+'"]').forEach(i=>i.addEventListener("input",()=>{
       S.ai.ans[t.id]=Object.assign({},S.ai.ans[t.id],{note:i.value});save();}));
@@ -1261,6 +1474,7 @@ function wire(){
     const lv=le?F.querySelector(le):null,sv=se?F.querySelector(se):null,tv=F.querySelector(te);
     if(!tv)return;const v=tv.value.trim();if(!v)return;
     S.notes.push({id:uid(),line:lv&&lv.value?lv.value:"",section:sv?sv.value:"General",text:v,tags:[],severity:"",status:st||"raw",at:Date.now()});
+    logHist("Comment added",(lv&&lv.value?("L"+lv.value+" "):"")+v.slice(0,80));
     save();render();
   };
   const a1=F.querySelector("#addN1");if(a1)a1.addEventListener("click",()=>add("#nl","#ns","#nt","raw"));
@@ -1347,10 +1561,25 @@ function wire(){
       S.notes.push({id:uid(),line:$("#mLine").value||"",section:sec,text:t,tags:tg?[tg]:[],severity:sev,status:"added",at:Date.now()});
       save();render();closeModal();});}));
 
+  Q("[data-core]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.getAttribute("data-core");
+    S.core=S.core||[];
+    if(S.core.includes(id)){S.core=S.core.filter(x=>x!==id);logHist("Core concern removed",id);}
+    else{
+      if(S.core.length>=3){openModal("Only 3 core concerns","Pick the 3 points the editor must not miss. Remove one ★ before adding another.","OK",closeModal);return;}
+      S.core.push(id);logHist("Core concern marked",id);
+    }
+    save();render();}));
+  const snL=F.querySelector("#snLevel"),snT=F.querySelector("#snTool"),snD=F.querySelector("#snDetail");
+  if(snL)snL.addEventListener("change",()=>{S.springer.level=snL.value;logHist("Springer AI-use set",snL.value);save();render();});
+  if(snT)snT.addEventListener("input",()=>{S.springer.tool=snT.value;save();});
+  if(snD)snD.addEventListener("input",()=>{S.springer.detail=snD.value;save();});
+
   const cp=F.querySelector("#btn-copy");if(cp)cp.addEventListener("click",e=>{hitEvent("copy","copy_report");copyText(draftText(),e.currentTarget,"Copy report");});
   const cp2=F.querySelector("#btn-copyprompt");if(cp2)cp2.addEventListener("click",e=>{hitEvent("copy","copy_prompt");copyText(promptText(),e.currentTarget,"Copy prompt and report");});
   const pd=F.querySelector("#btn-pdf");if(pd)pd.addEventListener("click",()=>savePdf());
   const tx=F.querySelector("#btn-txt");if(tx)tx.addEventListener("click",()=>saveTxt());
+  const px=F.querySelector("#btn-pltpy");if(px)px.addEventListener("click",()=>savePltpy());
 
   /* polish: key route — the provider always owns the API dialect */
   const pickProvider=pr=>{
@@ -1412,7 +1641,7 @@ function startEdit(el,id){
   el.textContent="";el.append(ta);ta.focus();ta.select();
   let done=false;
   const commit=ok=>{if(done)return;done=true;
-    if(ok&&ta.value.trim()){n.text=ta.value.trim();if(n.status!=="rejected"&&n.status!=="added")n.status="edited";}
+    if(ok&&ta.value.trim()&&ta.value.trim()!==n.text){n.text=ta.value.trim();if(n.status!=="rejected"&&n.status!=="added")n.status="edited";n.editedAt=Date.now();logHist("Comment edited",(n.line?("L"+n.line+" "):"")+n.text.slice(0,80));}
     save();render();};
   ta.addEventListener("blur",()=>commit(true));
   ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))commit(true);if(e.key==="Escape"){done=true;render();}e.stopPropagation();});
@@ -1616,10 +1845,11 @@ async function savePdf(){
     setD(C.hair);doc.setLineWidth(.15);doc.line(ML,y,W-MR,y);
     y+=3.2;
   }
-  function point(refMain,refSub,text,ai,sev){
+  function point(refMain,refSub,text,ai,sev,bold){
     const rw=19,gap=3,tx=ML+rw+gap,tw=CW-rw-gap-(sev?13:0);
-    doc.setFont("helvetica","normal");doc.setFontSize(9);
-    const tLines=text?doc.splitTextToSize(String(text),tw):[""];
+    doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(9);
+    const label=bold?"★ CORE — ":"";
+    const tLines=text?doc.splitTextToSize(label+String(text),tw):[""];
     doc.setFont("courier","normal");doc.setFontSize(7);
     const sLines=refSub?doc.splitTextToSize(String(refSub),rw):[];
     const blockH=Math.max(tLines.length*4.1,3.4+sLines.length*3.1)+3.4;
@@ -1631,7 +1861,7 @@ async function savePdf(){
     sLines.forEach((ln,i)=>doc.text(ln,ML,top+3.4+(i+1)*3.1));
     setD(C.hair);doc.setLineWidth(.15);
     doc.line(ML+rw,top+0.5,ML+rw,top+blockH-1.5);
-    doc.setFont("helvetica","normal");doc.setFontSize(9);setF(C.ink);
+    doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(9);setF(C.ink);
     tLines.forEach((ln,i)=>doc.text(ln,tx,top+3.6+i*4.1));
     if(sev){ /* severity never alone: solid block + literal code */
       const code=sev==="major"?"MAJ":"MIN";
@@ -1688,25 +1918,27 @@ async function savePdf(){
   y+=4;
   const block=(title,sev,obj)=>{
     let any=false;
-    sectionsList().forEach(sec=>{
-      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>(x.t.sec||"Methods")===sec);
+    const listed=sectionsList();
+    const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
+    order.forEach(sec=>{
+      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===sec);
       if(!arr.length&&!ai.length)return;
       if(!any){sectHead(title,sev,sev);any=true;}
       need(12);subHead(sec);
-      arr.forEach(n=>point(lineLabel(n),n.section||"",n.text,false,sev));
-      ai.forEach(({t,a})=>point(t.code||t.id,String(a.val||"").toUpperCase(),t.q+(a.note?" — "+a.note:""),true,sev));
+      arr.forEach(n=>point(lineLabel(n),(n.section||"")+(isCore(n.id)?" ★CORE":""),n.text,false,sev,isCore(n.id)));
+      /* only scores 1–2 (No-equivalent) reach the PDF, merged here — never a separate AI section */
+      ai.forEach(({t,a})=>point(t.code||t.id,"SCORE "+a.val,t.q+(a.note?" — "+a.note:""),true,sev));
     });
   };
   block("Major concerns","major",g.major);
   block("Minor points","minor",g.minor);
-  const ps=aiPassed();
-  if(aiOn()&&ps.length){
-    sectHead("AI checklist checks passed",null);
-    ps.forEach(t=>{
-      const ls=doc.splitTextToSize("PASS  "+(t.code||t.id)+" — "+t.q,CW-4);
-      ls.forEach(ln=>{need(4.4);doc.setFont("courier","normal");doc.setFontSize(8);setF(C.ok);doc.text(ln,ML+2,y);y+=4.0;});
-    });
-    y+=4;
+  /* No "checks passed" section: Yes-equivalent scores (4–5) stay out of the PDF by design. */
+  sectHead("AI-use declaration — Springer Nature",null);
+  doc.splitTextToSize(springerText(),CW).forEach(ln=>{need(4.5);doc.setFont("helvetica","normal");doc.setFontSize(8.5);setF(C.ink2);doc.text(ln,ML,y);y+=4.1;});
+  y+=3;
+  if(aiOn()){
+    doc.splitTextToSize("EQUATOR: "+EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+")",CW).forEach(ln=>{need(4.5);doc.setFont("courier","normal");doc.setFontSize(7);setF(C.ink3);doc.text(ln,ML,y);y+=3.8;});
+    y+=3;
   }
   /* Recommendation. The letter to the editor is deliberately not in the PDF. */
   sectHead("Recommendation",null);
@@ -1737,6 +1969,77 @@ $("#ms").addEventListener("input",e=>{S.ms=e.target.value;save();});
 $("#btn-prev").addEventListener("click",()=>go(S.step-1));
 $("#btn-next").addEventListener("click",()=>go(S.step+1));
 $("#btn-gloss").addEventListener("click",openGlossary);
+/* ---- reviews library: New / Continue / Export / Import .pltpy ---- */
+function openReviews(){
+  const lib=readLib();
+  const ids=Object.keys(lib).sort((a,b)=>((lib[b]||{}).updatedAt||0)-((lib[a]||{}).updatedAt||0));
+  const rows=ids.length?ids.map(id=>{
+    const r=lib[id]||{};const n=(r.notes||[]).length;
+    const when=r.updatedAt?new Date(r.updatedAt).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
+    return '<div class="revrow"><div class="rm"><b>'+esc(r.ms||"Untitled manuscript")+'</b><span>'+n+' comments · updated '+esc(when)+(id===S.id?" · current":"")+'</span></div>'+
+    '<button type="button" class="btn sec sm" data-openrev="'+id+'">Continue</button>'+
+    '<button type="button" class="btn gh sm" data-delrev="'+id+'">Delete</button></div>';
+  }).join(""):'<div class="empty">No saved reviews on this device yet.</div>';
+  openModal("My reviews — continue on this device",
+    "<p style='margin:0;font-size:13.5px;color:var(--ink-2)'>Reviews are stored in this browser. Continue one, export it as a <b>.pltpy</b> file (YAML frontmatter + Markdown + timestamped history), or import a .pltpy to continue elsewhere.</p>"+
+    "<div class='revlist'>"+rows+"</div>"+
+    "<div style='display:flex;gap:8px;margin-top:14px;flex-wrap:wrap'><button type='button' class='btn sec sm' id='m-export'>Export current .pltpy</button><button type='button' class='btn sec sm' id='m-import'>Import .pltpy</button></div>",
+    "Close",closeModal);
+  document.querySelectorAll("[data-openrev]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.getAttribute("data-openrev");const lib2=readLib();
+    if(!lib2[id])return;
+    saveNow();
+    const bb=base();S=Object.assign(bb,lib2[id]);
+    S.invite=Object.assign(base().invite,lib2[id].invite||{});
+    S.ai=Object.assign({on:null,ans:{}},lib2[id].ai||{});
+    S.report=Object.assign({intro:"",letter:""},lib2[id].report||{});
+    S.polish=Object.assign(base().polish,lib2[id].polish||{});
+    S.springer=Object.assign({level:"",tool:"",detail:""},lib2[id].springer||{});
+    if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
+    logHist("Review reopened");$("#ms").value=S.ms||"";
+    saveNow();closeModal();render();go(S.step||1);
+  }));
+  document.querySelectorAll("[data-delrev]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.getAttribute("data-delrev");
+    const lib2=readLib();delete lib2[id];
+    try{localStorage.setItem(LIB_KEY,JSON.stringify(lib2));}catch(e){}
+    if(id===S.id){S=base();$("#ms").value="";saveNow();}
+    closeModal();render();
+  }));
+  const me=$("#m-export");if(me)me.addEventListener("click",()=>{closeModal();savePltpy();});
+  const mi=$("#m-import");if(mi)mi.addEventListener("click",()=>{closeModal();$("#file-import").click();});
+}
+const newReview=()=>{
+  openModal("Start a new review?","<p style='margin:0;font-size:13.5px;color:var(--ink-2)'>The current review stays saved on this device under <b>My reviews</b>. A fresh review will open at step 1.</p>","Start new",()=>{
+    saveNow();S=base();logHist("Review created");$("#ms").value="";saveNow();closeModal();render();go(1);});
+};
+$("#btn-new").addEventListener("click",newReview);
+$("#btn-open").addEventListener("click",openReviews);
+$("#btn-export").addEventListener("click",savePltpy);
+$("#btn-import").addEventListener("click",()=>$("#file-import").click());
+$("#file-import").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=parsePltpy(String(rd.result||""));
+      saveNow();
+      const bb=base();S=Object.assign(bb,j);
+      S.invite=Object.assign(base().invite,j.invite||{});
+      S.ai=Object.assign({on:null,ans:{}},j.ai||{});
+      S.report=Object.assign({intro:"",letter:""},j.report||{});
+      S.polish=Object.assign(base().polish,j.polish||{});
+      S.springer=Object.assign({level:"",tool:"",detail:""},j.springer||{});
+      if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
+      if(!S.id)S.id=uid();
+      logHist("Imported .pltpy",f.name);$("#ms").value=S.ms||"";
+      saveNow();render();go(S.step||1);
+      openModal("Imported","Continuing <b>"+esc(S.ms||"review")+"</b> with full timestamped history ("+(S.history||[]).length+" events).","Open",()=>{closeModal();});
+    }catch(err){openModal("Import failed",esc(String((err&&err.message)||err)),"OK",closeModal);}
+    e.target.value="";
+  };
+  rd.readAsText(f);
+});
 $("#btn-reset").addEventListener("click",()=>{
   openModal("Clear this review?",
     "<p style='margin:0 0 6px;font-size:13.5px;color:var(--ink-2)'>This clears the readings, tags, checklist answers, report, and polish settings held in this browser. It cannot be undone.</p>"+
