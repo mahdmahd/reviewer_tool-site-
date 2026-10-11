@@ -846,7 +846,22 @@ function logHist(ev,detail){
 }
 let S=base();
 function readLib(){try{const r=localStorage.getItem(LIB_KEY);if(r){const o=JSON.parse(r);if(o&&typeof o==="object")return o;}}catch(e){}return {};}
-function writeLib(){try{const lib=readLib();lib[S.id]=S;try{localStorage.setItem(LIB_KEY,JSON.stringify(lib));}catch(e){}}catch(e){}}
+/* an empty shell (no manuscript, notes, decision, answers, report, core, or declaration)
+   is not worth keeping — this stops deleted reviews reappearing as blank rows */
+function isPristine(r){try{
+  if(!r)return true;
+  if((r.ms||"").trim())return false;
+  if((r.notes||[]).length)return false;
+  if(r.rec)return false;
+  if((r.invite||{}).decision)return false;
+  if(r.ai&&r.ai.on!==null)return false;
+  if(((r.report||{}).intro||"").trim()||((r.report||{}).letter||"").trim())return false;
+  if((r.core||[]).length)return false;
+  if((r.customTags||[]).length)return false;
+  const sp=r.springer||{};if(sp.level||(sp.tool||"").trim()||(sp.detail||"").trim())return false;
+  return true;
+}catch(e){return false;}}
+function writeLib(){try{const lib=readLib();if(isPristine(S)){delete lib[S.id];}else{lib[S.id]=S;}try{localStorage.setItem(LIB_KEY,JSON.stringify(lib));}catch(e){}}catch(e){}}
 /* load: prefer current-id pointer, fall back to legacy single-review key */
 try{
   const cur=localStorage.getItem(CUR_KEY);
@@ -2048,7 +2063,7 @@ function openReviews(){
     const lib2=readLib();delete lib2[id];
     try{localStorage.setItem(LIB_KEY,JSON.stringify(lib2));}catch(e){}
     if(id===S.id){S=base();$("#ms").value="";saveNow();}
-    closeModal();render();
+    render();openReviews();
   }));
   const me=$("#m-export");if(me)me.addEventListener("click",()=>{closeModal();savePltpy();});
   const mi=$("#m-import");if(mi)mi.addEventListener("click",()=>{closeModal();$("#file-import").click();});
