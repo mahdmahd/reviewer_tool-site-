@@ -563,6 +563,31 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .revrow .rm b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .revrow .rm span{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
 .hist{font-family:var(--f-mono);font-size:11px;line-height:1.7;color:var(--ink-2);max-height:180px;overflow:auto;border:1px solid var(--hair);background:var(--paper);padding:10px 12px;margin-top:10px}
+/* --- start screen: two big choices --- */
+.start{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(3px)}
+.start[hidden]{display:none}
+.start-card{background:var(--paper);border:1px solid var(--ink);outline:1px solid var(--ink);outline-offset:5px;
+  max-width:640px;width:100%;padding:clamp(24px,4vw,40px);text-align:center}
+.start-card h1{font-family:var(--f-display);font-size:clamp(26px,4vw,36px);font-weight:800;letter-spacing:-.025em;margin:0 0 8px}
+.start-card p{color:var(--ink-2);font-size:14.5px;margin:0 0 24px}
+.start-choices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.start-choices{grid-template-columns:1fr}}
+.start-choice{border:1px solid var(--rule-strong);background:var(--card);padding:26px 18px;cursor:pointer;
+  display:flex;flex-direction:column;gap:8px;align-items:center;transition:background var(--t-fast) linear}
+.start-choice:hover{background:var(--paper-2)}
+.start-choice .big-ico{font-size:30px;line-height:1}
+.start-choice .t{font-family:var(--f-display);font-size:19px;font-weight:700;letter-spacing:-.015em}
+.start-choice .d{font-size:13px;color:var(--ink-2);line-height:1.5}
+.start-choice.primary{background:var(--ultra);border-color:var(--ultra);color:#fff}
+.start-choice.primary .d{color:#DDE1F5}
+.start-choice.primary:hover{background:var(--ultra-ink)}
+/* --- continue modal: drop zone --- */
+.drop{border:2px dashed var(--rule-strong);background:var(--paper);padding:26px 16px;text-align:center;cursor:pointer;
+  font-size:14px;color:var(--ink-2);line-height:1.6;margin-bottom:6px;transition:all var(--t-fast) linear}
+.drop:hover,.drop.drag{border-color:var(--ultra);background:var(--ultra-wash);color:var(--ultra-ink)}
+.drop b{display:block;font-size:15px;color:var(--ink);margin-bottom:4px}
+.drop.drag b{color:var(--ultra-ink)}
 
 @media(max-width:880px){
   .armature{grid-template-columns:1fr}
@@ -661,6 +686,25 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
     <div class="macts">
       <button type="button" class="btn sec sm" id="mcancel">Cancel</button>
       <button type="button" class="btn sm" id="mconfirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="start" id="start">
+  <div class="start-card" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <h1 id="start-title">Start a review</h1>
+    <p>Begin a new peer review, or continue a previous one from a <b>.pltpy</b> file.</p>
+    <div class="start-choices">
+      <button type="button" class="start-choice primary" id="btn-start-new">
+        <span class="big-ico" aria-hidden="true">＋</span>
+        <span class="t">New Review</span>
+        <span class="d">Start fresh at step 1. Anything saved on this device is kept.</span>
+      </button>
+      <button type="button" class="start-choice" id="btn-start-continue">
+        <span class="big-ico" aria-hidden="true">⤺</span>
+        <span class="t">Continue Previous Review</span>
+        <span class="d">Select or drop a .pltpy file to pick up where you left off.</span>
+      </button>
     </div>
   </div>
 </div>
@@ -2017,28 +2061,75 @@ $("#btn-new").addEventListener("click",newReview);
 $("#btn-open").addEventListener("click",openReviews);
 $("#btn-export").addEventListener("click",savePltpy);
 $("#btn-import").addEventListener("click",()=>$("#file-import").click());
-$("#file-import").addEventListener("change",e=>{
-  const f=e.target.files&&e.target.files[0];if(!f)return;
+function switchToReview(j,histMsg){
+  saveNow();
+  const bb=base();S=Object.assign(bb,j);
+  S.invite=Object.assign(base().invite,j.invite||{});
+  S.ai=Object.assign({on:null,ans:{}},j.ai||{});
+  S.report=Object.assign({intro:"",letter:""},j.report||{});
+  S.polish=Object.assign(base().polish,j.polish||{});
+  S.springer=Object.assign({level:"",tool:"",detail:""},j.springer||{});
+  if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
+  if(!S.id)S.id=uid();
+  if(histMsg)logHist(histMsg.msg,histMsg.detail);
+  $("#ms").value=S.ms||"";
+  saveNow();render();go(S.step||1);
+}
+function dismissStart(){const st=$("#start");if(st)st.hidden=true;}
+function importPltpyFile(f){
+  if(!f)return;
   const rd=new FileReader();
   rd.onload=()=>{
     try{
       const j=parsePltpy(String(rd.result||""));
-      saveNow();
-      const bb=base();S=Object.assign(bb,j);
-      S.invite=Object.assign(base().invite,j.invite||{});
-      S.ai=Object.assign({on:null,ans:{}},j.ai||{});
-      S.report=Object.assign({intro:"",letter:""},j.report||{});
-      S.polish=Object.assign(base().polish,j.polish||{});
-      S.springer=Object.assign({level:"",tool:"",detail:""},j.springer||{});
-      if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
-      if(!S.id)S.id=uid();
-      logHist("Imported .pltpy",f.name);$("#ms").value=S.ms||"";
-      saveNow();render();go(S.step||1);
+      switchToReview(j,{msg:"Imported .pltpy",detail:f.name});
+      dismissStart();closeModal();
       openModal("Imported","Continuing <b>"+esc(S.ms||"review")+"</b> with full timestamped history ("+(S.history||[]).length+" events).","Open",()=>{closeModal();});
     }catch(err){openModal("Import failed",esc(String((err&&err.message)||err)),"OK",closeModal);}
-    e.target.value="";
   };
   rd.readAsText(f);
+}
+/* ---- continue: select or drop a .pltpy file, or pick a device-saved review ---- */
+function openContinue(){
+  const lib=readLib();
+  const ids=Object.keys(lib).sort((a,b)=>((lib[b]||{}).updatedAt||0)-((lib[a]||{}).updatedAt||0));
+  const rows=ids.length?ids.map(id=>{
+    const r=lib[id]||{};const n=(r.notes||[]).length;
+    const when=r.updatedAt?new Date(r.updatedAt).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
+    return '<div class="revrow"><div class="rm"><b>'+esc(r.ms||"Untitled manuscript")+'</b><span>'+n+' comments · updated '+esc(when)+'</span></div>'+
+    '<button type="button" class="btn sec sm" data-openrev="'+id+'">Continue</button></div>';
+  }).join(""):'<div class="empty">No reviews saved on this device yet — import a .pltpy file above.</div>';
+  openModal("Continue a previous review",
+    "<div class='drop' id='drop'><b>Select or drop your .pltpy file here</b>Click to browse, or drag &amp; drop the file.<br><span style='font-family:var(--f-mono);font-size:11px'>YAML frontmatter + Markdown + timestamped history</span></div>"+
+    "<p style='font-size:13px;color:var(--ink-2);margin:14px 0 6px'><b>Or continue a review saved on this device:</b></p>"+
+    "<div class='revlist' style='margin-top:0'>"+rows+"</div>",
+    "Cancel",closeModal);
+  const dz=$("#drop");
+  if(dz){
+    dz.addEventListener("click",()=>$("#file-import").click());
+    ["dragenter","dragover"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("drag");}));
+    ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("drag");}));
+    dz.addEventListener("drop",e=>{
+      const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+      if(f)importPltpyFile(f);
+    });
+  }
+  document.querySelectorAll("[data-openrev]").forEach(b=>b.addEventListener("click",()=>{
+    const id=b.getAttribute("data-openrev");const lib2=readLib();
+    if(!lib2[id])return;
+    switchToReview(lib2[id],{msg:"Review reopened",detail:""});
+    dismissStart();closeModal();
+  }));
+}
+$("#btn-start-new").addEventListener("click",()=>{
+  saveNow();S=base();logHist("Review created");$("#ms").value="";saveNow();
+  dismissStart();render();go(1);
+});
+$("#btn-start-continue").addEventListener("click",()=>{openContinue();});
+$("#file-import").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(f)importPltpyFile(f);
+  e.target.value="";
 });
 $("#btn-reset").addEventListener("click",()=>{
   openModal("Clear this review?",
