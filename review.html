@@ -559,6 +559,8 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .ckdetail{border-left:3px solid var(--ai);background:#FBFAFE;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.55;color:var(--ink)}
 .ckdetail .ckhint{color:var(--ink-2);font-size:13px}
 .ckdetail .cksrc{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)}
+.ckstatus{font-family:var(--f-mono);font-size:11px;line-height:1.6;border:1px solid var(--rule);background:var(--paper);padding:8px 10px;margin-top:10px;color:var(--ink-2)}
+.ckstatus b{color:var(--ink)}
 .cklists{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
 .cklist{border:1px solid var(--rule);background:var(--paper);padding:10px 12px;cursor:pointer;text-align:left;transition:all var(--t-fast) linear;position:relative;font-family:var(--f-text)}
 .cklist:hover{border-color:var(--ink)}
@@ -1041,7 +1043,23 @@ function renderReading(){
 }
 
 /* ---- render ---- */
+function ensureState(){
+  if(!S||typeof S!=="object")S=base();
+  if(!S.checklists)S.checklists={selected:"iaims",used:[]};
+  if(!Array.isArray(S.comments))S.comments=[];
+  if(!Array.isArray(S.notes))S.notes=[];
+  if(!Array.isArray(S.core))S.core=[];
+  if(!Array.isArray(S.history))S.history=[];
+  if(!Array.isArray(S.customTags))S.customTags=[];
+  if(!Array.isArray(S.sections)||!S.sections.length)S.sections=SECTIONS.slice();
+  if(!S.invite)S.invite={expert:"",conflict:"",time:"",decision:""};
+  if(!S.report)S.report={intro:"",letter:""};
+  if(!S.springer)S.springer={level:"",tool:"",detail:""};
+  if(!S.polish)S.polish=base().polish;
+  if(typeof S.step!=="number"||S.step<1||S.step>5)S.step=1;
+}
 function render(){
+  ensureState();
   renderRail();renderReading();
   const F=$("#field");
   if(S.step===1)F.innerHTML=vInvite();
@@ -1147,6 +1165,12 @@ function ckSync(){
   return {sel,items,it:it||{q:"",hint:"",code:"",src:"",sev:"major",sec:"Methods"}};
 }
 function ckCur(){const s=ckSel(),items=ckItemsOf(s);return items.find(x=>x.id===CKUI.item)||items[0]||{sev:"major",sec:"Methods"};}
+function ckStatusText(){
+  const it=ckCur();
+  const ans=CKUI.answer||"No",cls=CKUI.cls||it.sev||"major";
+  const where=(ans==="No"||ans==="Unclear")?("→ joins the report as <b>"+esc(cls.toUpperCase())+"</b>"):("→ stays here, out of the report");
+  return 'Selected <b>'+esc(ckAbbr(ckSel())+' '+(it.code||""))+'</b> · Answer <b>'+esc(ans)+'</b> · Weight <b>'+esc(cls.toUpperCase())+'</b> '+where;
+}
 function ckPicker(){
   const secs=sectionsList();
   const open=!!(S.checklists&&S.checklists.open);
@@ -1179,6 +1203,7 @@ function ckPicker(){
    '<div class="f"><label for="cksec">Section</label><select class="inp" id="cksec">'+secs.map(s=>'<option'+(aiSecOf(it)===s?" selected":"")+'>'+esc(s)+'</option>').join("")+'</select></div></div>';
   h+='<div class="capture-row full"><div class="f"><label for="cknote">Note (optional, joins the report sentence)</label>'+
     '<input class="inp" id="cknote" value="'+esc(CKUI.note||"")+'" placeholder="e.g. no test-set description found"></div></div>';
+  h+='<div class="ckstatus" id="ckstatus">'+ckStatusText()+'</div>';
   h+='<div style="margin-top:10px"><button type="button" class="btn" id="addCk">Add comment</button> '+
    '<span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Only No / Unclear reach the report, inside Major / Minor. Yes / N-A stay here.</span></div>';
   return h+'</div>';
@@ -1639,6 +1664,8 @@ function wire(){
     if(d)d.innerHTML='<b>'+esc(it.code||"")+' · '+esc(it.q||"No questions in this list yet.")+'</b><br><span class="ckhint">'+esc(it.hint||"")+'</span><br><span class="cksrc">'+esc(it.src||"")+'</span>';
     const sg=F.querySelector("#cksugg");
     if(sg)sg.innerHTML='suggestion: <b>'+esc((CKUI.cls||it.sev||"major").toUpperCase())+'</b> · you decide';
+    const st=F.querySelector("#ckstatus");
+    if(st)st.innerHTML=ckStatusText();
     const sec=F.querySelector("#cksec");
     if(sec){try{sec.value=aiSecOf(it);}catch(e){}}
   };
@@ -1650,7 +1677,9 @@ function wire(){
     ckRefreshDetail();}));
   Q("[data-ckans]").forEach(b=>b.addEventListener("click",()=>{
     CKUI.answer=b.getAttribute("data-ckans");
-    Q("[data-ckans]").forEach(x=>x.setAttribute("aria-pressed",x===b));}));
+    Q("[data-ckans]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    const st=F.querySelector("#ckstatus");
+    if(st)st.innerHTML=ckStatusText();}));
   Q("[data-ckcls]").forEach(b=>b.addEventListener("click",()=>{
     const v=b.getAttribute("data-ckcls");
     CKUI.cls=(CKUI.cls===v?"":v);
@@ -1662,7 +1691,7 @@ function wire(){
   if(addCk)addCk.addEventListener("click",()=>{
     const sel=ckSel();
     const item=ckItemsOf(sel).find(x=>x.id===CKUI.item)||ckItemsOf(sel)[0];
-    if(!item)return;
+    if(!item){openModal("Questions still loading","The checklist files have not finished loading yet. Wait a moment and try again.","OK",closeModal);return;}
     const lineEl=F.querySelector("#ckline");
     const line=lineEl&&lineEl.value?String(lineEl.value):"";
     const secEl=F.querySelector("#cksec");
