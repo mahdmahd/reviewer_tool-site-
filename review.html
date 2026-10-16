@@ -561,6 +561,7 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .ckdetail .cksrc{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)}
 .ckstatus{font-family:var(--f-mono);font-size:11px;line-height:1.6;border:1px solid var(--rule);background:var(--paper);padding:8px 10px;margin-top:10px;color:var(--ink-2)}
 .ckstatus b{color:var(--ink)}
+.ckpreview{border-left:3px solid var(--ultra);background:#fff;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.55;color:var(--ink)}
 .cklists{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
 .cklist{border:1px solid var(--rule);background:var(--paper);padding:10px 12px;cursor:pointer;text-align:left;transition:all var(--t-fast) linear;position:relative;font-family:var(--f-text)}
 .cklist:hover{border-color:var(--ink)}
@@ -785,8 +786,8 @@ const PRE_TAGS=[
  {name:"novelty / originality",sev:"major"},{name:"ethics",sev:"major"}
 ];
 const CK_FALLBACK=[
- {id:"iaims-I3",code:"I3",q:"Did the authors report whether their code, model and data are open source, with a permanent link?",hint:"Typically at the end of the paper, e.g. a 'Code availability' section.",sev:"major",sec:"Methods",src:"iAIMS checklist"},
- {id:"iaims-I6",code:"I6",q:"Are all hyperparameters for model training specified to allow reproducibility?",hint:"Check common ones: learning rate, train/val split ratio, early stop criterion.",sev:"major",sec:"Methods",src:"iAIMS checklist"}
+ {id:"iaims-I3",code:"I3",q:"Did the authors report whether their code, model and data are open source, with a permanent link?",hint:"Typically at the end of the paper, e.g. a 'Code availability' section.",sev:"major",sec:"Methods",src:"iAIMS checklist",no:"The authors did not report whether their code, model and data are openly available, and no permanent link was provided.",unclear:"The openness of code, model and data, and the permanence of the provided links, were not clearly described."},
+ {id:"iaims-I6",code:"I6",q:"Are all hyperparameters for model training specified to allow reproducibility?",hint:"Check common ones: learning rate, train/val split ratio, early stop criterion.",sev:"major",sec:"Methods",src:"iAIMS checklist",no:"Key hyperparameters for model training were not specified, so the work cannot be reproduced from the description given.",unclear:"The reporting of hyperparameters was incomplete, leaving it unclear whether training could be reproduced."}
 ];
 let CK_REG=[{id:"iaims",name:"iAIMS Checklist",file:"iaims.json",recommended:true,use:"General healthcare-AI review (recommended starting point)",url:"https://www.equator-network.org/reporting-guidelines-study-design/artificial-intelligence-machine-learning-studies/"}];
 let CK_ITEMS={iaims:CK_FALLBACK.slice()};
@@ -798,12 +799,22 @@ function ckItemsOf(listId){return CK_ITEMS[listId]||[];}
 function ckAbbr(listId){const r=ckListOf(listId);return (r&&r.name||listId).split(" ")[0];}
 function ckSentence(listId,item,answer,note,line){
   const code=item.code||item.id;
-  const prefix="["+ckAbbr(listId)+" "+code+"]";
-  const q=String(item.q||"").replace(/\s+$/,"");
+  const prefix="["+ckAbbr(listId)+" "+code+"] ";
   const n=String(note||"").trim();
-  if(answer==="No")return prefix+" "+q+" — No."+(n?" "+n:"");
-  if(answer==="Unclear")return prefix+" "+q+" — Unclear."+(n?" "+n:"");
-  return prefix+" "+q+" — "+answer+":"+(n?" "+n:"");
+  let s="";
+  if(answer==="No")s=item.no||("Not addressed: "+(item.q||""));
+  else if(answer==="Unclear")s=item.unclear||("Unclear: "+(item.q||""));
+  else if(answer==="Yes")s="Addressed: "+(item.q||"");
+  else s=(item.q||"")+" — N/A.";
+  if(n)s+=" "+n;
+  return prefix+s;
+}
+function ckPreviewHTML(){
+  const ans=CKUI.answer||"No";
+  if(ans==="Yes"||ans==="N/A")return '<span style="color:var(--ink-3)">This answer stays out of the report.</span>';
+  const it=ckCur();
+  const note=String(CKUI.note||"").trim();
+  return "<b>Report preview:</b> "+esc(ckSentence(ckSel(),it,ans,note));
 }
 function aiSecOf(t){
   const raw=String((t&&t.sec)||(t&&t.section)||"Methods");
@@ -979,18 +990,12 @@ async function loadTpl(){
     const reg=await fetch("assets/checklists/registry.json",{cache:"no-store"});
     if(reg.ok){const rj=await reg.json();if(Array.isArray(rj)&&rj.length)CK_REG=rj;}
   }catch(e){}
-  try{
-    const legacy=await fetch("assets/ai-checklist-template.json",{cache:"no-store"});
-    if(legacy.ok){const lj=await legacy.json();
-      if(Array.isArray(lj)&&lj.length)CK_ITEMS.iaims=lj.map((x,i)=>({code:x.code||("I"+(i+1)),src:x.src||"iAIMS checklist",sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:"iaims-"+x.id}));}
-  }catch(e){}
   for(const r of CK_REG){
-    if(CK_ITEMS[r.id]&&r.id==="iaims"&&CK_ITEMS.iaims.length>2)continue;
     try{
       const f=await fetch("assets/checklists/"+r.file,{cache:"no-store"});
       if(!f.ok)continue;
       const j=await f.json();
-      if(Array.isArray(j)&&j.length)CK_ITEMS[r.id]=j.map((x,i)=>({code:x.code||("Q"+(i+1)),src:x.src||r.name,sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:x.id||(r.id+"-"+i)}));
+      if(Array.isArray(j)&&j.length)CK_ITEMS[r.id]=j.map((x,i)=>({code:x.code||("Q"+(i+1)),src:x.src||r.name,sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",no:x.no||"",unclear:x.unclear||"",id:x.id||(r.id+"-"+i)}));
     }catch(e){}
   }
   if(S.step===2)render();
@@ -1204,6 +1209,7 @@ function ckPicker(){
   h+='<div class="capture-row full"><div class="f"><label for="cknote">Note (optional, joins the report sentence)</label>'+
     '<input class="inp" id="cknote" value="'+esc(CKUI.note||"")+'" placeholder="e.g. no test-set description found"></div></div>';
   h+='<div class="ckstatus" id="ckstatus">'+ckStatusText()+'</div>';
+  h+='<div class="ckpreview" id="ckpreview">'+ckPreviewHTML()+'</div>';
   h+='<div style="margin-top:10px"><button type="button" class="btn" id="addCk">Add comment</button> '+
    '<span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Only No / Unclear reach the report, inside Major / Minor. Yes / N-A stay here.</span></div>';
   return h+'</div>';
@@ -1666,6 +1672,8 @@ function wire(){
     if(sg)sg.innerHTML='suggestion: <b>'+esc((CKUI.cls||it.sev||"major").toUpperCase())+'</b> · you decide';
     const st=F.querySelector("#ckstatus");
     if(st)st.innerHTML=ckStatusText();
+    const pv=F.querySelector("#ckpreview");
+    if(pv)pv.innerHTML=ckPreviewHTML();
     const sec=F.querySelector("#cksec");
     if(sec){try{sec.value=aiSecOf(it);}catch(e){}}
   };
@@ -1679,14 +1687,18 @@ function wire(){
     CKUI.answer=b.getAttribute("data-ckans");
     Q("[data-ckans]").forEach(x=>x.setAttribute("aria-pressed",x===b));
     const st=F.querySelector("#ckstatus");
-    if(st)st.innerHTML=ckStatusText();}));
+    if(st)st.innerHTML=ckStatusText();
+    const pv=F.querySelector("#ckpreview");
+    if(pv)pv.innerHTML=ckPreviewHTML();}));
   Q("[data-ckcls]").forEach(b=>b.addEventListener("click",()=>{
     const v=b.getAttribute("data-ckcls");
     CKUI.cls=(CKUI.cls===v?"":v);
     Q("[data-ckcls]").forEach(x=>x.setAttribute("aria-pressed",x.getAttribute("data-ckcls")===CKUI.cls));
     ckRefreshDetail();}));
   const ckNote=F.querySelector("#cknote");
-  if(ckNote)ckNote.addEventListener("input",()=>{CKUI.note=ckNote.value;});
+  if(ckNote)ckNote.addEventListener("input",()=>{CKUI.note=ckNote.value;
+    const pv=F.querySelector("#ckpreview");
+    if(pv)pv.innerHTML=ckPreviewHTML();});
   const addCk=F.querySelector("#addCk");
   if(addCk)addCk.addEventListener("click",()=>{
     const sel=ckSel();
@@ -1702,7 +1714,7 @@ function wire(){
     const text=ckSentence(sel,item,answer,note,line);
     S.comments.push({id:uid(),kind:"checklist",text:text,cls:cls,core:false,line:line,section:sec||"General",tags:[],
       status:"raw",at:Date.now(),dirty:false,
-      checklist:{listId:sel,itemId:item.id,code:item.code||"",question:item.q||"",desc:item.hint||"",src:item.src||"",suggestedSev:item.sev||"major",answer:answer,note:note}});
+      checklist:{listId:sel,itemId:item.id,code:item.code||"",question:item.q||"",desc:item.hint||"",src:item.src||"",suggestedSev:item.sev||"major",answer:answer,note:note,noText:item.no||"",unclearText:item.unclear||""}});
     if(!S.checklists.used.includes(sel))S.checklists.used.push(sel);
     S.core=S.core||[];
     CKUI.note="";CKUI.answer="No";
@@ -1783,7 +1795,7 @@ function wire(){
     const n=allComments().find(x=>x.id===b.getAttribute("data-ckedit"));if(!n||!n.checklist)return;
     const v=b.getAttribute("data-a");
     n.checklist.answer=v;
-    if(!n.dirty)n.text=ckSentence(n.checklist.listId,{code:n.checklist.code,q:n.checklist.question,hint:n.checklist.desc},v,n.checklist.note||"",n.line);
+    if(!n.dirty)n.text=ckSentence(n.checklist.listId,{code:n.checklist.code,q:n.checklist.question,hint:n.checklist.desc,no:n.checklist.noText,unclear:n.checklist.unclearText},v,n.checklist.note||"",n.line);
     if(v==="Yes"||v==="N/A")logHist("Checklist re-answered",(n.checklist.code||"")+" → "+v+" (out of report)");
     else logHist("Checklist re-answered",(n.checklist.code||"")+" → "+v);
     save();render();}));

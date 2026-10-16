@@ -6,7 +6,9 @@
     "hint": "Look whether an independent dataset was used to test the model.",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not use an external test dataset, so generalisability beyond the development cohort is untested.",
+    "unclear": "Whether the authors used an external test dataset was not clearly stated."
   },
   {
     "id": "existing-vs-developed",
@@ -15,7 +17,9 @@
     "hint": "Look at the end of the introduction, aim is often stated there.",
     "severity": "minor",
     "section": "Introduction",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not state whether they used an existing model or developed their own.",
+    "unclear": "It was unclear whether the authors used an existing model or developed their own."
   },
   {
     "id": "open-source",
@@ -24,7 +28,9 @@
     "hint": "Typically at the end of the paper, e.g. a 'Code availability' section.",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not report whether their code, model and data are openly available, and no permanent link was provided.",
+    "unclear": "The openness of code, model and data, and the permanence of the provided links, were not clearly described."
   },
   {
     "id": "resources",
@@ -33,7 +39,9 @@
     "hint": "Are computational resources (GPU, OS) and data openness described in sufficient detail?",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "Computational resources and data openness were not described in sufficient detail to judge reproducibility.",
+    "unclear": "It was unclear whether the reported computational resources and data access details suffice for reproduction."
   },
   {
     "id": "transfer-learning",
@@ -42,7 +50,9 @@
     "hint": "If TL was performed, is there a permanent link to the original and/or updated model?",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "Transfer learning was either not applied or not accurately described, and no permanent link to the original or updated model was given.",
+    "unclear": "Whether and how transfer learning was applied, and where the models can be found, was not clearly reported."
   },
   {
     "id": "hyperparameters",
@@ -51,7 +61,9 @@
     "hint": "Check common ones: learning rate, train/val split ratio, early stop criterion.",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "Key hyperparameters for model training were not specified, so the work cannot be reproduced from the description given.",
+    "unclear": "The reporting of hyperparameters was incomplete, leaving it unclear whether training could be reproduced."
   },
   {
     "id": "performance-metrics",
@@ -60,7 +72,9 @@
     "hint": "Accuracy and AUC alone do not allow a full appreciation of model performance.",
     "severity": "minor",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors relied only on the most obvious performance metrics, which does not allow a full appreciation of model performance.",
+    "unclear": "It was unclear whether the reported metrics suffice for a full appreciation of model performance."
   },
   {
     "id": "xai",
@@ -69,7 +83,9 @@
     "hint": "Might be in methods or discussion. Relieves the rat race on model performance alone.",
     "severity": "minor",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not go beyond performance to assess explainability, interpretability or transparency of the model.",
+    "unclear": "It was unclear whether any explainability or interpretability analysis was performed beyond raw performance."
   },
   {
     "id": "missing-data",
@@ -78,7 +94,9 @@
     "hint": "Missing data should be transparently described in methods to avoid bias during training.",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not report on missing data or how it was handled, leaving a potential source of bias unaddressed.",
+    "unclear": "The handling of missing data was not transparently described."
   },
   {
     "id": "ai-aim",
@@ -87,7 +105,9 @@
     "hint": "Not every method calls for brute AI force. Were the authors mindful about their use of AI?",
     "severity": "major",
     "section": "Methods",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not report their rationale for using AI for this problem.",
+    "unclear": "The rationale for using AI rather than a simpler approach was not clearly articulated."
   },
   {
     "id": "class-imbalance",
@@ -96,7 +116,9 @@
     "hint": "Class imbalance might drive model bias. A 99:1 dataset is 99% accurate by always predicting the majority class.",
     "severity": "major",
     "section": "Introduction",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The authors did not report on class imbalance, although it can strongly bias classification performance.",
+    "unclear": "It was unclear whether class imbalance was present and how it was handled."
   },
   {
     "id": "ai-in-title",
@@ -105,7 +127,9 @@
     "hint": "For later systematic reviews and immediate transparency on the use of AI.",
     "severity": "major",
     "section": "Introduction",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The title does not make it immediately clear that this paper involves AI.",
+    "unclear": "It was unclear from the title whether AI is involved in this work."
   },
   {
     "id": "further-ai-specification",
@@ -114,6 +138,8 @@
     "hint": "E.g. unsupervised / supervised / reinforcement, which type of machine learning method.",
     "severity": "major",
     "section": "Introduction",
-    "src": "iAIMS checklist"
+    "src": "iAIMS checklist",
+    "no": "The specific type of AI used was not elaborated on.",
+    "unclear": "The specific type of AI used was only vaguely described."
   }
 ]
