@@ -1,0 +1,8 @@
+[
+  {"id": "l-use", "code": "L1", "q": "Is the LLM's role, version and configuration stated?", "hint": "Model name/version, date accessed, temperature, prompts, fine-tuning.", "severity": "major", "section": "Methods", "src": "TRIPOD-LLM"},
+  {"id": "l-data", "code": "L2", "q": "Are training/evaluation data, contamination and privacy safeguards described?", "hint": "Data sources, overlap with LLM pretraining, de-identification.", "severity": "major", "section": "Methods", "src": "TRIPOD-LLM"},
+  {"id": "l-prompt", "code": "L3", "q": "Are prompts, few-shot examples and post-processing shared?", "hint": "Full prompt templates, example selection, output parsing.", "severity": "major", "section": "Methods", "src": "TRIPOD-LLM"},
+  {"id": "l-eval", "code": "L4", "q": "Is evaluation robust (metrics, human review, uncertainty, leakage check)?", "hint": "Appropriate metrics, blinded human rating, CIs, test-set independence.", "severity": "major", "section": "Results", "src": "TRIPOD-LLM"},
+  {"id": "l-hallu", "code": "L5", "q": "Are hallucinations, bias and failure modes assessed?", "hint": "Fabrication rate, subgroup disparities, error examples.", "severity": "major", "section": "Results", "src": "TRIPOD-LLM"},
+  {"id": "l-claim", "code": "L6", "q": "Do claims respect LLM limits (no overgeneralisation)?", "hint": "Version drift, prompt brittleness, deployment caveats.", "severity": "major", "section": "Discussion", "src": "TRIPOD-LLM"}
+]

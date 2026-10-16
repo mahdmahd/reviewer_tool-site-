@@ -1,0 +1,119 @@
+[
+  {
+    "id": "external-test-set",
+    "code": "I1",
+    "q": "Did the authors use an external test dataset?",
+    "hint": "Look whether an independent dataset was used to test the model.",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "existing-vs-developed",
+    "code": "I2",
+    "q": "Did the authors report whether they used an existing model or developed their own?",
+    "hint": "Look at the end of the introduction, aim is often stated there.",
+    "severity": "minor",
+    "section": "Introduction",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "open-source",
+    "code": "I3",
+    "q": "Did the authors report whether their code, model and data are open source, with a permanent link?",
+    "hint": "Typically at the end of the paper, e.g. a 'Code availability' section.",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "resources",
+    "code": "I4",
+    "q": "Were resources adequately specified?",
+    "hint": "Are computational resources (GPU, OS) and data openness described in sufficient detail?",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "transfer-learning",
+    "code": "I5",
+    "q": "Was transfer learning applied, and if so, accurately described?",
+    "hint": "If TL was performed, is there a permanent link to the original and/or updated model?",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "hyperparameters",
+    "code": "I6",
+    "q": "Are all hyperparameters for model training specified to allow reproducibility?",
+    "hint": "Check common ones: learning rate, train/val split ratio, early stop criterion.",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "performance-metrics",
+    "code": "I7",
+    "q": "Did the authors use performance metrics beyond the most obvious ones?",
+    "hint": "Accuracy and AUC alone do not allow a full appreciation of model performance.",
+    "severity": "minor",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "xai",
+    "code": "I8",
+    "q": "Did the authors go beyond performance to assess explainability / interpretability / transparency (XAI)?",
+    "hint": "Might be in methods or discussion. Relieves the rat race on model performance alone.",
+    "severity": "minor",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "missing-data",
+    "code": "I9",
+    "q": "Did the authors report on missing data and how it was handled?",
+    "hint": "Missing data should be transparently described in methods to avoid bias during training.",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "ai-aim",
+    "code": "I10",
+    "q": "Did the authors report their rationale for using AI?",
+    "hint": "Not every method calls for brute AI force. Were the authors mindful about their use of AI?",
+    "severity": "major",
+    "section": "Methods",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "class-imbalance",
+    "code": "I11",
+    "q": "In case of classification, did the authors report on class imbalance?",
+    "hint": "Class imbalance might drive model bias. A 99:1 dataset is 99% accurate by always predicting the majority class.",
+    "severity": "major",
+    "section": "Introduction",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "ai-in-title",
+    "code": "I12",
+    "q": "Is it immediately clear from the title that this paper involves AI?",
+    "hint": "For later systematic reviews and immediate transparency on the use of AI.",
+    "severity": "major",
+    "section": "Introduction",
+    "src": "iAIMS checklist"
+  },
+  {
+    "id": "further-ai-specification",
+    "code": "I13",
+    "q": "Was the specific type of AI elaborated on?",
+    "hint": "E.g. unsupervised / supervised / reinforcement, which type of machine learning method.",
+    "severity": "major",
+    "section": "Introduction",
+    "src": "iAIMS checklist"
+  }
+]

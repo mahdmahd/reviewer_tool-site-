@@ -1,0 +1,10 @@
+[
+  {"id": "iaims", "name": "iAIMS Checklist", "file": "iaims.json", "recommended": true, "use": "General healthcare-AI review (recommended starting point)", "url": "https://www.equator-network.org/reporting-guidelines-study-design/artificial-intelligence-machine-learning-studies/"},
+  {"id": "tripod-ai", "name": "TRIPOD+AI", "file": "tripod-ai.json", "use": "Prediction models (regression or ML)", "url": "https://www.equator-network.org/reporting-guidelines/tripod-statement/"},
+  {"id": "claim", "name": "CLAIM 2024", "file": "claim.json", "use": "Medical imaging AI", "url": "https://www.equator-network.org/reporting-guidelines/checklist-for-artificial-intelligence-in-medical-imaging-claim-a-guide-for-authors-and-reviewers/"},
+  {"id": "consort-ai", "name": "CONSORT-AI / SPIRIT-AI", "file": "consort-ai.json", "use": "RCT reports & protocols with AI intervention", "url": "https://www.equator-network.org/reporting-guidelines/consort-artificial-intelligence/"},
+  {"id": "decide-ai", "name": "DECIDE-AI", "file": "decide-ai.json", "use": "Early live clinical evaluation of AI decision support", "url": "https://www.equator-network.org/reporting-guidelines/reporting-guideline-for-the-early-stage-clinical-evaluation-of-decision-support-systems-driven-by-artificial-intelligence-decide-ai/"},
+  {"id": "stard-ai", "name": "STARD-AI", "file": "stard-ai.json", "use": "Diagnostic-accuracy studies with AI", "url": "https://www.equator-network.org/reporting-guidelines/the-stard-ai-reporting-guideline-for-diagnostic-accuracy-studies-using-artificial-intelligence/"},
+  {"id": "mi-claim", "name": "MI-CLAIM", "file": "mi-claim.json", "use": "Minimum information about clinical AI modelling", "url": "https://www.equator-network.org/reporting-guidelines/minimum-information-about-clinical-artificial-intelligence-modeling-the-mi-claim-checklist/"},
+  {"id": "tripod-llm", "name": "TRIPOD-LLM", "file": "tripod-llm.json", "use": "Studies using large language models", "url": "https://www.equator-network.org/reporting-guidelines/the-tripod-llm-reporting-guideline-for-studies-using-large-language-models/"}
+]

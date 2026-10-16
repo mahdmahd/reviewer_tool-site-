@@ -1,0 +1,9 @@
+[
+  {"id": "ca-intended", "code": "A1", "q": "Is the AI intervention described (intended use, users, workflow integration)?", "hint": "What the AI does, for whom, at which decision point.", "severity": "major", "section": "Methods", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-version", "code": "A2", "q": "Are AI version, inputs, outputs and human-AI interaction specified?", "hint": "Model version, input requirements, output format, who acts on it and how.", "severity": "major", "section": "Methods", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-data", "code": "A3", "q": "Are eligibility, randomisation and on-site requirements for the AI clear?", "hint": "Site readiness, data quality gates, fallback when AI unavailable.", "severity": "major", "section": "Methods", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-errors", "code": "A4", "q": "Are AI errors, harms and human override analysed?", "hint": "Error cases, adverse effects, disagreement handling.", "severity": "major", "section": "Results", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-outcomes", "code": "A5", "q": "Are AI-relevant outcomes and subgroup effects reported?", "hint": "Primary outcome plus AI-specific performance and heterogeneity.", "severity": "major", "section": "Results", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-repro", "code": "A6", "q": "Is enough shared to reproduce the AI arm (code, config, access)?", "hint": "Version pinning, access terms, computational needs.", "severity": "minor", "section": "Methods", "src": "CONSORT-AI / SPIRIT-AI"},
+  {"id": "ca-claim", "code": "A7", "q": "Do the conclusions respect the trial's limits for the AI claim?", "hint": "No extrapolation beyond studied sites, populations and workflow.", "severity": "major", "section": "Discussion", "src": "CONSORT-AI / SPIRIT-AI"}
+]

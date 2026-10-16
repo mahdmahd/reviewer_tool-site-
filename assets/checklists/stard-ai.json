@@ -1,0 +1,8 @@
+[
+  {"id": "s-intended", "code": "S1", "q": "Is the intended use and target condition of the AI test stated?", "hint": "Role (triage, add-on, replacement), population, setting.", "severity": "major", "section": "Introduction", "src": "STARD-AI"},
+  {"id": "s-participants", "code": "S2", "q": "Are recruitment, sampling and exclusions for the accuracy study clear?", "hint": "Consecutive/random sampling, flow diagram, exclusions with reasons.", "severity": "major", "section": "Methods", "src": "STARD-AI"},
+  {"id": "s-test", "code": "S3", "q": "Is the AI index test described so it can be replicated?", "hint": "Version, inputs, preprocessing, thresholds pre-specified or not.", "severity": "major", "section": "Methods", "src": "STARD-AI"},
+  {"id": "s-ref", "code": "S4", "q": "Is the reference standard valid and applied independently?", "hint": "Rationale, blinding between AI and reference, adjudication.", "severity": "major", "section": "Methods", "src": "STARD-AI"},
+  {"id": "s-analysis", "code": "S5", "q": "Are accuracy measures reported with uncertainty and indeterminate handling?", "hint": "2x2 table, sensitivity/specificity/AUC with CIs, handling of failures/indeterminates.", "severity": "major", "section": "Results", "src": "STARD-AI"},
+  {"id": "s-general", "code": "S6", "q": "Are generalisability limits and harms of misclassification discussed?", "hint": "Spectrum, setting shifts, consequences of false positives/negatives.", "severity": "major", "section": "Discussion", "src": "STARD-AI"}
+]

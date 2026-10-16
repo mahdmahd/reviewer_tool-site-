@@ -199,7 +199,7 @@ const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 const fmt=t=>t?new Date(t).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
 
 const SKEY="iaims-stats-v1", RKEY="iaims-review-v3";
-const STEPS={1:"01 Invite",2:"02 First read",3:"03 Second read",4:"04 AI Checklist",5:"05 Report",6:"06 AI polishing"};
+const STEPS={1:"01 Invite",2:"02 First read",3:"03 Second read",4:"04 Report",5:"05 AI polishing"};
 
 let STAT={visits:0,pdf:0,txt:0,copy:0,polish:0,checklist:0,first:0,last:0};
 try{const r=localStorage.getItem(SKEY);if(r)STAT=Object.assign(STAT,JSON.parse(r)||{});}catch(e){}
@@ -221,18 +221,19 @@ function reviewRows(){
   if(!S){
     return head+'<div class="row"><div class="k">Review</div><div class="v"><span class="m">No review held in this browser yet.</span></div></div>';
   }
-  const notes=S.notes||[];
+  const notes=S.comments||S.notes||[];
   const live=notes.filter(n=>n.status!=="rejected");
-  const sevOf=n=>{if(n.stamp)return n.stamp;if(n.severity)return n.severity;
+  const sevOf=n=>{if(n.cls)return n.cls;if(n.stamp)return n.stamp;if(n.severity)return n.severity;
     const t=s=>((S.customTags||[]).find(x=>x.name===s)||{}).sev||({typo:"minor","grammar / language":"minor",formatting:"minor","reference style":"minor","figure / table clarity":"minor","methodological concern":"major","statistical issue":"major","data concern":"major","interpretation overreach":"major","novelty / originality":"major",ethics:"major"}[s]||"");
     const ts=n.tags||[];if(ts.some(x=>t(x)==="major"))return"major";if(ts.some(x=>t(x)==="minor"))return"minor";return"";};
   const maj=live.filter(n=>sevOf(n)==="major").length;
   const min=live.filter(n=>sevOf(n)==="minor").length;
   const un=live.filter(n=>!sevOf(n)).length;
   const rj=notes.length-live.length;
-  const aiAns=(S.ai&&S.ai.ans)||{};
-  const flagged=Object.values(aiAns).filter(a=>a&&(a.val==="1"||a.val==="2"||a.val==="no")).length;
-  const ai=S.ai&&S.ai.on===true?("Run · "+flagged+" flagged (1–2)"):S.ai&&S.ai.on===false?"Skipped":"Not opened";
+  const ckNo=live.filter(n=>n.kind==="checklist"&&n.checklist&&n.checklist.answer==="No").length;
+  const ckUn=live.filter(n=>n.kind==="checklist"&&n.checklist&&n.checklist.answer==="Unclear").length;
+  const used=[...new Set((notes||[]).filter(n=>n.kind==="checklist"&&n.checklist).map(n=>n.checklist.listId))];
+  const ai=used.length?("Used: "+used.join(", ")+" · No "+ckNo+" · Unclear "+ckUn):"No checklist comments";
   const core=(S.core||[]).length;
   const sn=(S.springer&&S.springer.level)||"—";
   const REC={accept:"Accept",minor:"Minor revision",major:"Major revision",reject:"Reject"};

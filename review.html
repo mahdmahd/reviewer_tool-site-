@@ -541,6 +541,39 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .tcell-ans button[aria-pressed="true"][data-v="5"]{background:var(--ok);color:#fff}
 .tcell-ans button[aria-pressed="true"][data-v="unclear"]{background:var(--minor);color:#fff}
 .tcell-ans button[aria-pressed="true"][data-v="na"]{background:var(--ink-3);color:#fff}
+/* --- unified comment objects (First read merge): popup cards + checklist picker --- */
+.ckpick{border:1px solid var(--rule-strong);background:var(--card);padding:14px 16px;margin-bottom:20px}
+.ckpick-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:4px}
+.ckpick-h .t{font-family:var(--f-display);font-size:16px;font-weight:700;letter-spacing:-.01em}
+.ckpick-h .d{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.cklists{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
+.cklist{border:1px solid var(--rule);background:var(--paper);padding:10px 12px;cursor:pointer;text-align:left;transition:all var(--t-fast) linear;position:relative;font-family:var(--f-text)}
+.cklist:hover{border-color:var(--ink)}
+.cklist[aria-pressed="true"]{background:var(--ultra-wash);outline:2px solid var(--ultra);outline-offset:-2px;border-color:var(--ultra)}
+.cklist .cn{font-size:13.5px;font-weight:700;display:block}
+.cklist .cu{font-size:12px;color:var(--ink-2);display:block;margin-top:3px;line-height:1.45}
+.rec-tag{font-family:var(--f-mono);font-size:9px;font-weight:700;letter-spacing:.1em;background:var(--ok);color:#fff;padding:2px 6px;margin-left:8px;vertical-align:2px;text-transform:uppercase}
+.sugg{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;border:1px dashed var(--ink-3);color:var(--ink-2);padding:3px 8px;display:inline-block;margin:8px 0}
+.sugg b{color:var(--ink)}
+.cmt{position:relative;background:var(--card);border:1px solid var(--rule);border-bottom-width:2px;padding:13px 44px 12px 0;margin-bottom:10px;animation:cmt-in 380ms var(--ease) both}
+.cmt:nth-child(2){animation-delay:40ms}.cmt:nth-child(3){animation-delay:80ms}.cmt:nth-child(4){animation-delay:120ms}.cmt:nth-child(n+5){animation-delay:160ms}
+@keyframes cmt-in{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.cmt.is-leaving{transition:opacity 200ms linear,transform 200ms var(--ease);opacity:0;transform:translateX(24px)}
+.cmt.n-major{background:var(--major-wash);border-color:var(--major)}
+.cmt.n-minor{background:var(--minor-wash);border-color:var(--minor)}
+.cmt.is-core{outline:2px solid var(--ink);outline-offset:-2px}
+.cmt-x{position:absolute;top:6px;right:6px;width:30px;height:30px;display:grid;place-items:center;background:transparent;border:1px solid transparent;color:var(--ink-3);cursor:pointer;font-size:16px;line-height:1;border-radius:50%;transition:all var(--t-fast) linear}
+.cmt-x:hover{background:var(--major);border-color:var(--major);color:#fff;transform:rotate(90deg)}
+.cmt.is-checklist{background:#FBFAFE;border-left:4px solid var(--ai)}
+.cmt.is-checklist.n-major{border-left-color:var(--major)}
+.cmt.is-checklist.n-minor{border-left-color:var(--minor)}
+.ansrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ansrow button{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--rule);color:var(--ink-2);padding:8px 12px;cursor:pointer;min-height:40px}
+.ansrow button:hover{border-color:var(--ink);color:var(--ink)}
+.ansrow button[aria-pressed="true"][data-a="Yes"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.ansrow button[aria-pressed="true"][data-a="No"]{background:var(--major);border-color:var(--major);color:#fff}
+.ansrow button[aria-pressed="true"][data-a="Unclear"]{background:var(--minor);border-color:var(--minor);color:#fff}
+.ansrow button[aria-pressed="true"][data-a="N/A"]{background:var(--ink-3);border-color:var(--ink-3);color:#fff}
 .eqpanel{border:1px solid var(--rule-strong);background:var(--card);padding:14px 16px;margin-bottom:18px}
 .eqpanel h3{font-family:var(--f-display);font-size:16px;font-weight:700;letter-spacing:-.01em;margin:0 0 6px}
 .eqpanel p{font-size:13.5px;color:var(--ink-2);margin:0 0 10px;line-height:1.55}
@@ -718,14 +751,13 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 const uid=()=>"r"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
-/* ---- the six stations ---- */
+/* ---- the five stations (AI checklist merged into First read as comment objects) ---- */
 const STEPS=[
  {n:1,k:"01",label:"Invite",desc:"Ask yourself three easy questions to decide whether you should accept this peer review: expertise, conflicts of interest and time."},
- {n:2,k:"02",label:"First read",desc:"Read the manuscript entirely and jot down anything that comes to mind — don't worry about wording, severity, or what makes the final letter. A reading with no line number is labelled General, so give a line number whenever the manuscript has one."},
+ {n:2,k:"02",label:"First read",desc:"Read the manuscript entirely and jot down anything that comes to mind — general notes and optional AI-checklist prompts both become comment objects. A reading with no line number is labelled General."},
  {n:3,k:"03",label:"Second read",desc:"Read the manuscript again after having detached from it (e.g. the next day). Filter your initial notes, add new ones, rewrite what you keep, and label each reading Major or Minor. Strike what doesn't belong. Tags (＋ Mark) are optional — they help the AI polish later."},
- {n:4,k:"04",label:"AI Checklist",optional:true,desc:"Are you reviewing a paper involving AI in healthcare? This optional step contains a list of questions, based on EQUATOR checklists, that aims to filter out major flaws in AI methodology and reporting."},
- {n:5,k:"05",label:"Report",desc:"View your entire report as it will appear as PDF. Make final adaptations, or choose for AI polishing in step 6."},
- {n:6,k:"06",label:"AI polishing",optional:true,desc:"If you would like to have your text refined with the help of AI, provide your own model key — or generate a prompt for you to copy into your favourite chat app."}
+ {n:4,k:"04",label:"Report",desc:"View your entire report as it will appear as PDF. Make final adaptations, or choose for AI polishing in step 5."},
+ {n:5,k:"05",label:"AI polishing",optional:true,desc:"If you would like to have your text refined with the help of AI, provide your own model key — or generate a prompt for you to copy into your favourite chat app."}
 ];
 const SECTIONS=["Introduction","Methods","Results","Discussion","Figures","Tables"];
 const LEGACY_SECTIONS=["Introduction","Methods","Results","Discussion","General"];
@@ -737,27 +769,29 @@ const PRE_TAGS=[
  {name:"data concern",sev:"major"},{name:"interpretation overreach",sev:"major"},
  {name:"novelty / originality",sev:"major"},{name:"ethics",sev:"major"}
 ];
-const AI_FALLBACK=[
- {id:"ai-test-set",code:"T1",q:"Did they keep a proper held-out test set?",hint:"Look for a train / validation / test split, and evidence that the test set never informed tuning.",sev:"major",sec:"Methods",src:"TRIPOD+AI · model evaluation"},
- {id:"ai-leakage",code:"T2",q:"Did they rule out data leakage?",hint:"The same patient, scanner, or site appearing in both training and test inflates every number that follows.",sev:"major",sec:"Methods",src:"PROBAST+AI · analysis domain"},
- {id:"ai-external",code:"T3",q:"Is there external validation on an independent cohort?",hint:"Single-centre internal validation only means the performance estimate is optimistic by an unknown margin.",sev:"major",sec:"Results",src:"CLAIM 2024 · test data"},
- {id:"ai-metrics",code:"T4",q:"Are the metrics appropriate, with confidence intervals?",hint:"Discrimination, calibration, and clinical utility are different claims. Point estimates alone cannot carry them.",sev:"major",sec:"Methods",src:"APPRAISE-AI · performance"},
- {id:"ai-baseline",code:"T5",q:"Did they compare against a sensible baseline or clinicians?",hint:"Without a comparator, a reported gain has no scale.",sev:"minor",sec:"Discussion",src:"APPRAISE-AI · comparator"},
- {id:"ai-transparency",code:"T6",q:"Are data, code, and model details shared enough to reproduce?",hint:"Access terms, preprocessing, hyperparameters, random seeds, and the model version actually used.",sev:"minor",sec:"Methods",src:"TRIPOD+AI · open science"},
- {id:"ai-failure",code:"T7",q:"Did they analyse failures, subgroups, and fairness?",hint:"Error cases and subgroup performance across sex, age, site, and ethnicity — not overall accuracy alone.",sev:"major",sec:"Results",src:"APPRAISE-AI · bias"},
- {id:"ai-claim",code:"T8",q:"Do the clinical claims match what was actually tested?",hint:"The common failure is overreach from a retrospective AUC to a bedside benefit claim.",sev:"major",sec:"Discussion",src:"DECIDE-AI · interpretation"}
+const CK_FALLBACK=[
+ {id:"iaims-I3",code:"I3",q:"Did the authors report whether their code, model and data are open source, with a permanent link?",hint:"Typically at the end of the paper, e.g. a 'Code availability' section.",sev:"major",sec:"Methods",src:"iAIMS checklist"},
+ {id:"iaims-I6",code:"I6",q:"Are all hyperparameters for model training specified to allow reproducibility?",hint:"Check common ones: learning rate, train/val split ratio, early stop criterion.",sev:"major",sec:"Methods",src:"iAIMS checklist"}
 ];
-let AI_TPL=AI_FALLBACK.slice();
-/* 1–5 scale: 1–2 = concern (old "No") → goes to report/PDF · 4–5 = addressed (old "Yes") → stays out of PDF · 3 = partial → out · unclear/na/"" → out of PDF */
-const AI_VALS=[
- {v:"1",t:"1 · not addressed"},{v:"2",t:"2 · poor"},{v:"3",t:"3 · partial"},
- {v:"4",t:"4 · adequate"},{v:"5",t:"5 · excellent"},{v:"unclear",t:"Unclear"},{v:"na",t:"N/A"}
-];
-const AI_VAL_LABEL={1:"1 — not addressed",2:"2 — poor",3:"3 — partial",4:"4 — adequate",5:"5 — excellent",unclear:"UNCLEAR",na:"N/A"};
-const aiIsConcern=a=>!!a&&(a.val==="1"||a.val==="2");
-const aiIsUnclear=a=>!!a&&a.val==="unclear";
+let CK_REG=[{id:"iaims",name:"iAIMS Checklist",file:"iaims.json",recommended:true,use:"General healthcare-AI review (recommended starting point)",url:"https://www.equator-network.org/reporting-guidelines-study-design/artificial-intelligence-machine-learning-studies/"}];
+let CK_ITEMS={iaims:CK_FALLBACK.slice()};
+/* Answer model: Yes / No / Unclear / N-A. Only No + Unclear become report sentences. */
+const CK_ANSWERS=["Yes","No","Unclear","N/A"];
+const ckIsReportable=c=>!!c&&c.kind==="checklist"&&c.checklist&&(c.checklist.answer==="No"||c.checklist.answer==="Unclear");
+function ckListOf(id){return CK_REG.find(r=>r.id===id)||CK_REG[0];}
+function ckItemsOf(listId){return CK_ITEMS[listId]||[];}
+function ckAbbr(listId){const r=ckListOf(listId);return (r&&r.name||listId).split(" ")[0];}
+function ckSentence(listId,item,answer,note,line){
+  const code=item.code||item.id;
+  const prefix="["+ckAbbr(listId)+" "+code+"]";
+  const q=String(item.q||"").replace(/\s+$/,"");
+  const n=String(note||"").trim();
+  if(answer==="No")return prefix+" "+q+" — No."+(n?" "+n:"");
+  if(answer==="Unclear")return prefix+" "+q+" — Unclear."+(n?" "+n:"");
+  return prefix+" "+q+" — "+answer+":"+(n?" "+n:"");
+}
 function aiSecOf(t){
-  const raw=String((t&&t.sec)||"Methods");
+  const raw=String((t&&t.sec)||(t&&t.section)||"Methods");
   const listed=sectionsList();
   if(listed.includes(raw))return raw;
   const first=raw.split("/")[0].trim();
@@ -829,8 +863,9 @@ const GLOSSARY=[
 const LIB_KEY="iaims-reviews-v1", CUR_KEY="iaims-review-current-v1";
 const base=()=>({id:uid(),createdAt:Date.now(),updatedAt:Date.now(),step:1,ms:"",
  invite:{expert:"",conflict:"",time:"",decision:""},
- notes:[],customTags:[],
+ comments:[],notes:[],customTags:[],
  sections:SECTIONS.slice(),
+ checklists:{selected:"iaims",used:[]},
  ai:{on:null,ans:{}},
  report:{intro:"",letter:""},rec:"",done:false,
  core:[],
@@ -851,10 +886,9 @@ function readLib(){try{const r=localStorage.getItem(LIB_KEY);if(r){const o=JSON.
 function isPristine(r){try{
   if(!r)return true;
   if((r.ms||"").trim())return false;
-  if((r.notes||[]).length)return false;
+  if(((r.comments||[]).length)||((r.notes||[]).length))return false;
   if(r.rec)return false;
   if((r.invite||{}).decision)return false;
-  if(r.ai&&r.ai.on!==null)return false;
   if(((r.report||{}).intro||"").trim()||((r.report||{}).letter||"").trim())return false;
   if((r.core||[]).length)return false;
   if((r.customTags||[]).length)return false;
@@ -870,8 +904,23 @@ try{
   if(cur&&lib[cur])loaded=lib[cur];
   if(!loaded){const r=localStorage.getItem(KEY);if(r)loaded=JSON.parse(r);}
   if(!loaded){const ids=Object.keys(lib);if(ids.length)loaded=lib[ids.sort((a,b)=>(lib[b].updatedAt||0)-(lib[a].updatedAt||0))[0]];}
-  if(loaded){const b=base();S=Object.assign(b,loaded);S.invite=Object.assign(base().invite,loaded.invite||{});S.ai=Object.assign({on:null,ans:{}},loaded.ai||{});S.report=Object.assign({intro:"",letter:""},loaded.report||{});S.polish=Object.assign(base().polish,loaded.polish||{});S.springer=Object.assign({level:"",tool:"",detail:""},loaded.springer||{});if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];if(!S.id)S.id=uid();if(!S.createdAt)S.createdAt=Date.now();}
+  if(loaded){const b=base();S=Object.assign(b,loaded);S.invite=Object.assign(base().invite,loaded.invite||{});S.report=Object.assign({intro:"",letter:""},loaded.report||{});S.polish=Object.assign(base().polish,loaded.polish||{});S.springer=Object.assign({level:"",tool:"",detail:""},loaded.springer||{});S.checklists=Object.assign({selected:"iaims",used:[]},loaded.checklists||{});if(!Array.isArray(S.comments))S.comments=[];if(!Array.isArray(S.notes))S.notes=[];if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];if(!S.id)S.id=uid();if(!S.createdAt)S.createdAt=Date.now();}
 }catch(e){}
+/* unify legacy notes[] → comments[] (fresh start for checklist answers: archived, not migrated) */
+function noteToComment(n){
+  return {id:n.id||uid(),kind:"general",text:String(n.text||""),cls:(n.stamp||n.severity||""),core:false,
+    line:(n.line!=null?String(n.line):""),section:n.section||"",tags:n.tags||[],status:n.status||"raw",
+    at:n.at||Date.now(),dirty:true};
+}
+if(!Array.isArray(S.comments))S.comments=[];
+if(!S.comments.length&&(S.notes||[]).length){S.comments=S.notes.map(noteToComment);S.core=(S.core||[]).filter(id=>S.comments.some(c=>c.id===id));}
+if((S.ai&&S.ai.ans&&Object.keys(S.ai.ans).length)&&!S._legacyArchived){
+  const nKeys=Object.keys(S.ai.ans).length;
+  S.history=S.history||[];S.history.push({t:new Date().toISOString(),ev:"Legacy checklist archived",detail:nKeys+" item(s) from the old 1–5 step kept out of this fresh 5-step review"});
+  S._legacyArchived=true;
+}
+if(S.step>5)S.step=5;
+if(S.step===4&&false){}
 if(!Array.isArray(S.sections)||!S.sections.length)S.sections=SECTIONS.slice();
 /* migrate legacy defaults → new defaults (adds Figures + Tables) */
 if(Array.isArray(S.sections)&&(S.sections.join("|")===LEGACY_SECTIONS.join("|")||S.sections.join("|")===LEGACY_SECTIONS2.join("|")))S.sections=SECTIONS.slice();
@@ -882,9 +931,6 @@ if(!S.springer)S.springer={level:"",tool:"",detail:""};
 if(S.invite.ex){if(!S.invite.expert)S.invite.expert=S.invite.ex;delete S.invite.ex;}
 if(S.invite.cf){if(!S.invite.conflict)S.invite.conflict=S.invite.cf;delete S.invite.cf;}
 if(S.invite.tm){if(!S.invite.time)S.invite.time=S.invite.tm;delete S.invite.tm;}
-/* migrate legacy yes/no/unclear answers → 1–5 scale (no→2, yes→4, unclear stays) */
-try{Object.keys(S.ai.ans||{}).forEach(k=>{const a=S.ai.ans[k];if(!a||!a.val)return;
-  if(a.val==="no")a.val="2";else if(a.val==="yes")a.val="4";});}catch(e){}
 let timer=null;
 const save=()=>{clearTimeout(timer);timer=setTimeout(()=>{
   S.updatedAt=Date.now();
@@ -907,16 +953,33 @@ function hitEvent(k,ev){STAT[k]=(STAT[k]||0)+1;STAT.last=Date.now();statSave();g
 
 const allTags=()=>PRE_TAGS.concat((S.customTags||[]).map(t=>({name:t.name,sev:t.sev,custom:true})));
 const tagSev=n=>{const f=allTags().find(t=>t.name===n);return f?f.sev:"";};
-const sevOf=n=>{if(n.stamp)return n.stamp;if(n.severity)return n.severity;const ts=n.tags||[];if(ts.some(t=>tagSev(t)==="major"))return"major";if(ts.some(t=>tagSev(t)==="minor"))return"minor";return"";};
-const live=()=>S.notes.filter(n=>n.status!=="rejected");
-const aiOn=()=>S.ai.on===true;
-const aiItems=()=>AI_TPL;
-const aiConcerns=sev=>!aiOn()?[]:aiItems().map(t=>({t,a:(S.ai.ans||{})[t.id]})).filter(x=>aiIsConcern(x.a)&&(x.t.sev||"major")===sev);
-const aiUnclear=()=>!aiOn()?[]:aiItems().map(t=>({t,a:(S.ai.ans||{})[t.id]})).filter(x=>aiIsUnclear(x.a));
-const aiScored=()=>aiItems().filter(t=>{const v=((S.ai.ans||{})[t.id]||{}).val;return v==="1"||v==="2"||v==="3"||v==="4"||v==="5"||v==="unclear"||v==="na";});
+const allComments=()=>Array.isArray(S.comments)?S.comments:[];
+const sevOf=n=>{if(!n)return"";if(n.cls)return n.cls;if(n.stamp)return n.stamp;if(n.severity)return n.severity;const ts=n.tags||[];if(ts.some(t=>tagSev(t)==="major"))return"major";if(ts.some(t=>tagSev(t)==="minor"))return"minor";return"";};
+const live=()=>allComments().filter(n=>n.status!=="rejected");
+const reportableLive=()=>live().filter(n=>{if(n.kind==="checklist"&&n.checklist){const a=n.checklist.answer;if(a==="Yes"||a==="N/A")return false;}return !!sevOf(n);});
+const ckCount=(ans)=>allComments().filter(c=>c.kind==="checklist"&&c.checklist&&c.checklist.answer===ans).length;
 const isCore=id=>(S.core||[]).includes(id);
-async function loadTpl(){try{const r=await fetch("assets/ai-checklist-template.json",{cache:"no-store"});if(!r.ok)return;const j=await r.json();
- if(Array.isArray(j)&&j.length&&j.every(x=>x&&x.id&&x.q)){AI_TPL=j.map((x,i)=>({code:x.code||("T"+(i+1)),src:x.src||"AI consideration",sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:x.id}));if(S.step===4||S.step===5)render();}}catch(e){}}
+async function loadTpl(){
+  try{
+    const reg=await fetch("assets/checklists/registry.json",{cache:"no-store"});
+    if(reg.ok){const rj=await reg.json();if(Array.isArray(rj)&&rj.length)CK_REG=rj;}
+  }catch(e){}
+  try{
+    const legacy=await fetch("assets/ai-checklist-template.json",{cache:"no-store"});
+    if(legacy.ok){const lj=await legacy.json();
+      if(Array.isArray(lj)&&lj.length)CK_ITEMS.iaims=lj.map((x,i)=>({code:x.code||("I"+(i+1)),src:x.src||"iAIMS checklist",sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:"iaims-"+x.id}));}
+  }catch(e){}
+  for(const r of CK_REG){
+    if(CK_ITEMS[r.id]&&r.id==="iaims"&&CK_ITEMS.iaims.length>2)continue;
+    try{
+      const f=await fetch("assets/checklists/"+r.file,{cache:"no-store"});
+      if(!f.ok)continue;
+      const j=await f.json();
+      if(Array.isArray(j)&&j.length)CK_ITEMS[r.id]=j.map((x,i)=>({code:x.code||("Q"+(i+1)),src:x.src||r.name,sev:x.severity||x.sev||"major",sec:x.section||x.sec||"Methods",q:x.q,hint:x.hint||"",id:x.id||(r.id+"-"+i)}));
+    }catch(e){}
+  }
+  if(S.step===2)render();
+}
 
 /* ---- modal ---- */
 let mfn=null;
@@ -944,18 +1007,17 @@ function renderRail(){
 }
 function stepDone(n){
   if(n===1)return!!S.invite.decision;
-  if(n===2)return S.notes.length>0;
+  if(n===2)return allComments().length>0;
   if(n===3)return live().some(x=>sevOf(x));
-  if(n===4)return S.ai.on!==null;
-  if(n===5)return !!S.rec;
+  if(n===4)return !!S.rec;
   return S.polish.route!=="";
 }
 const counters=()=>{
-  const t=S.notes.length;
+  const t=allComments().length;
   const maj=live().filter(n=>sevOf(n)==="major").length;
   const min=live().filter(n=>sevOf(n)==="minor").length;
   const un=live().filter(n=>!sevOf(n)).length;
-  const rj=S.notes.filter(n=>n.status==="rejected").length;
+  const rj=allComments().filter(n=>n.status==="rejected").length;
   return {t,maj,min,un,rj};
 };
 function renderReading(){
@@ -972,15 +1034,14 @@ function render(){
   if(S.step===1)F.innerHTML=vInvite();
   if(S.step===2)F.innerHTML=vRead();
   if(S.step===3)F.innerHTML=vTriage();
-  if(S.step===4)F.innerHTML=vAppraise();
-  if(S.step===5)F.innerHTML=vReport();
-  if(S.step===6)F.innerHTML=vPolish();
+  if(S.step===4)F.innerHTML=vReport();
+  if(S.step===5)F.innerHTML=vPolish();
   wire();
   $("#btn-prev").style.visibility=S.step===1?"hidden":"visible";
   /* Continue only appears on the invite once the reviewer has accepted */
   $("#btn-next").style.display=(S.step===1&&S.invite.decision!=="accept")?"none":"";
   $("#btn-next").className=(S.step===1&&S.invite.decision==="accept")?"btn":"btn sm";
-  $("#btn-next").textContent=S.step===6?"Done":"Continue → "+STEPS[Math.min(5,S.step)].label;
+  $("#btn-next").textContent=S.step===5?"Done":"Continue → "+STEPS[Math.min(4,S.step)].label;
 }
 function head(n,extra){
   const s=STEPS[n-1];
@@ -1049,7 +1110,7 @@ function delSec(i){
   if(S.sections.length<2)return;
   const removed=S.sections[i];
   const fb=S.sections.includes("General")?"General":(S.sections[i+1]||S.sections[i-1]);
-  S.notes.forEach(n=>{if(n.section===removed)n.section=fb;});
+  allComments().forEach(n=>{if(n.section===removed)n.section=fb;});
   S.sections.splice(i,1);save();render();
 }
 function renameSec(i,v){
@@ -1057,12 +1118,63 @@ function renameSec(i,v){
   if(!nv||nv===old){render();return;}
   if(S.sections.includes(nv)){render();return;}
   S.sections[i]=nv;
-  S.notes.forEach(n=>{if(n.section===old)n.section=nv;});
+  allComments().forEach(n=>{if(n.section===old)n.section=nv;});
   save();render();
 }
+/* transient checklist composer state (not saved until the comment is added) */
+const CKUI={item:"",answer:"No",cls:"",note:""};
+function ckPicker(){
+  const sel=(S.checklists&&S.checklists.selected)||"iaims";
+  const items=ckItemsOf(sel);
+  const cur=items.find(x=>x.id===(CKUI.item||""))||items[0];
+  if(cur&&!CKUI.item)CKUI.item=cur.id;
+  if(cur&&!CKUI.cls)CKUI.cls=cur.sev||"major";
+  const active=cur||{q:"",hint:"",code:"",src:"",sev:"major"};
+  return '<div class="ckpick">'+
+   '<div class="ckpick-h"><span class="t">AI Checklist <span style="font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--ink-3)">OPTIONAL</span></span>'+
+   '<span class="d">Pick a list, answer Yes / No / Unclear / N-A. Only No + Unclear become report sentences.</span></div>'+
+   '<div class="cklists" role="radiogroup" aria-label="Checklist">'+CK_REG.map(r=>
+     '<button type="button" class="cklist" aria-pressed="'+(sel===r.id)+'" data-cklist="'+r.id+'">'+
+     '<span class="cn">'+esc(r.name)+(r.recommended?'<span class="rec-tag">Recommended</span>':"")+'</span>'+
+     '<span class="cu">'+esc(r.use||"")+'</span></button>').join("")+'</div>'+
+   '<div class="capture-row full"><div class="f"><label for="ckitem">Checklist question</label>'+
+     '<select class="inp" id="ckitem">'+items.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===CKUI.item?" selected":"")+'>'+esc((x.code||"")+" — "+x.q).slice(0,120)+'</option>').join("")+'</select></div></div>'+
+   '<div class="note-blk" style="margin:10px 0"><b>'+esc(active.code||"")+' · '+esc(active.q||"No questions in this list yet.")+'</b><br>'+esc(active.hint||"")+
+     '<br><span style="font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)">'+esc(active.src||"")+' · section '+esc(active.sec||"Methods")+'</span>'+
+     '<br><span class="sugg">Severity suggestion: <b>'+esc((CKUI.cls||active.sev||"major").toUpperCase())+'</b> — you decide, tap Major or Minor to override</span></div>'+
+   '<div class="ansrow" role="radiogroup" aria-label="Answer">'+CK_ANSWERS.map(a=>
+     '<button type="button" data-ckans="'+a+'" aria-pressed="'+(CKUI.answer===a)+'">'+a+'</button>').join("")+
+     '<button type="button" class="mark m-maj" data-ckcls="major" aria-pressed="'+(CKUI.cls==="major")+'">Major</button>'+
+     '<button type="button" class="mark m-min" data-ckcls="minor" aria-pressed="'+(CKUI.cls==="minor")+'">Minor</button></div>'+
+   '<div class="capture-row" style="margin-top:10px"><div class="f"><label for="ckline">Line (optional)</label><input class="inp" id="ckline" type="number" min="1" placeholder="General"></div>'+
+   '<div class="f"><label for="cknote">Note (optional, joins the report sentence)</label><input class="inp" id="cknote" value="'+esc(CKUI.note||"")+'" placeholder="e.g. no test-set description found"></div></div>'+
+   '<div style="margin-top:10px"><button type="button" class="btn sec sm" id="addCk">Add checklist comment</button> '+
+   '<span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Yes / N-A stay here and never reach the report.</span></div>'+
+  '</div>';
+}
+function commentCard(n){
+  const s=sevOf(n);
+  const core=isCore(n.id);
+  const isCk=n.kind==="checklist"&&n.checklist;
+  const ans=isCk?n.checklist.answer:"";
+  const listName=isCk?ckListOf(n.checklist.listId).name:"";
+  const code=isCk?(n.checklist.code||""):"";
+  return '<article class="cmt'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+(core?" is-core":"")+(isCk?" is-checklist":"")+'" data-card="'+n.id+'">'+
+   '<button type="button" class="cmt-x" data-cdel="'+n.id+'" title="Delete this comment" aria-label="Delete comment">×</button>'+
+   '<div class="note-schema"><span class="note-line">'+esc(lineLabel(n))+'</span><span class="note-sec">'+esc(n.section||"General")+'</span>'+
+     (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">—</span>')+
+     (core?'<span class="sevtag" data-s="none">★ CORE</span>':"")+
+     (isCk?'<span class="sevtag" data-s="none">'+esc(code+" · "+ans)+'</span>':"")+'</div>'+
+   '<div class="note-body"><p class="note-text clickable" data-edit="'+n.id+'" title="Click to edit">'+esc(n.text)+'</p>'+
+     (isCk?'<p style="font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);margin:6px 0 0">'+esc(listName)+' · '+esc(n.checklist.question||"").slice(0,140)+(n.checklist.suggestedSev?' · suggested '+esc(n.checklist.suggestedSev):"")+'</p>':"")+
+     '<div class="note-meta">'+(n.status==="rejected"?'<span class="sevtag" data-s="none">struck</span>':"")+
+       ((n.tags||[]).map(t=>'<span class="sevtag" data-s="'+esc(tagSev(t)||"none")+'">'+esc(t)+'</span>').join(""))+
+     '</div></div></article>';
+}
+const noteCard=commentCard;
 function vRead(){
   const secs=sectionsList();
-  const sorted=[...S.notes].sort((a,b)=>(parseInt(a.line)||99999)-(parseInt(b.line)||99999));
+  const sorted=[...allComments()].sort((a,b)=>(parseInt(a.line)||99999)-(parseInt(b.line)||99999));
   return head(2)+
   '<div class="capture">'+
    secEditor()+
@@ -1076,25 +1188,14 @@ function vRead(){
    '<button type="button" class="btn" id="addN1">Add comment</button> '+
    '<span class="meta" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-left:10px">No severity yet — that is the second read.</span>'+
   '</div>'+
+  ckPicker()+
   '<div class="strip">'+
     '<div class="f"><label for="nq">Filter</label><input class="inp" id="nq" placeholder="Text or line number" autocomplete="off"></div>'+
     '<div class="f narrow"><label for="nsec">Section</label><select class="inp" id="nsec"><option value="">All</option>'+secs.map(s=>'<option>'+esc(s)+'</option>').join("")+'</select></div>'+
-    '<span class="meta" id="ncount" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);padding-bottom:9px">'+S.notes.length+' of '+S.notes.length+'</span>'+
+    '<span class="meta" id="ncount" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);padding-bottom:9px">'+allComments().length+' of '+allComments().length+'</span>'+
   '</div>'+
-  (sorted.length?'<div id="nlist">'+sorted.map(noteCard).join("")+'</div>'
+  (sorted.length?'<div id="nlist">'+sorted.map(commentCard).join("")+'</div>'
    :'<div class="empty">No readings yet. The first pass is capture only: note the line, note the section, note what you saw. Judgement comes in the second read, once you have the whole paper in your head.</div>');
-}
-function noteCard(n){
-  const s=sevOf(n);
-  const st=n.status==="rejected"?'<span class="sevtag" data-s="none">struck</span>':"";
-  const tags=(n.tags||[]).map(t=>'<span class="sevtag" data-s="'+esc(tagSev(t)||"none")+'">'+esc(t)+'</span>').join("");
-  return '<article class="note'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+'" data-card="'+n.id+'">'+
-   '<div class="note-schema"><span class="note-line">'+esc(lineLabel(n))+'</span><span class="note-sec">'+esc(n.section||"General")+'</span>'+
-     (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">—</span>')+'</div>'+
-   '<div class="note-body"><p class="note-text clickable" data-edit="'+n.id+'" title="Click to edit">'+esc(n.text)+'</p>'+
-     '<div class="note-meta">'+st+tags+
-       '<div class="note-acts"><button type="button" class="mark" data-del="'+n.id+'">Delete</button></div>'+
-     '</div></div></article>';
 }
 
 /* ---- 03 triage ---- */
@@ -1135,12 +1236,16 @@ function vTriage(){
    '<div class="capture-row full"><div class="f"><label for="n2t">Observation</label><textarea class="inp" id="n2t" rows="2"></textarea></div></div>'+
    '<button type="button" class="btn sec sm" id="addN2">Add comment</button>'+
   '</div>'+
-  (S.notes.length?[...S.notes].sort((a,b)=>(parseInt(a.line)||99999)-(parseInt(b.line)||99999)).map(n=>{
+  (allComments().length?[...allComments()].sort((a,b)=>(parseInt(a.line)||99999)-(parseInt(b.line)||99999)).map(n=>{
     const s=sevOf(n);const core=isCore(n.id);
-    return '<article class="note'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+(core?" is-core":"")+'" data-card="'+n.id+'">'+
+    const isCk=n.kind==="checklist"&&n.checklist;
+    return '<article class="cmt'+(s==="major"?" n-major":s==="minor"?" n-minor":"")+(n.status==="rejected"?" is-rejected":"")+(core?" is-core":"")+(isCk?" is-checklist":"")+'" data-card="'+n.id+'">'+
+      '<button type="button" class="cmt-x" data-cdel="'+n.id+'" title="Delete this comment" aria-label="Delete comment">×</button>'+
       '<div class="note-schema"><span class="note-line">'+esc(lineLabel(n))+'</span><span class="note-sec">'+esc(n.section||"General")+'</span>'+
-        (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">untagged</span>')+(core?'<span class="sevtag" data-s="none">★ CORE</span>':"")+'</div>'+
+        (s==='major'?'<span class="sevtag" data-s="major">MAJ</span>':s==='minor'?'<span class="sevtag" data-s="minor">MIN</span>':'<span class="sevtag" data-s="none">untagged</span>')+(core?'<span class="sevtag" data-s="none">★ CORE</span>':"")+(isCk?'<span class="sevtag" data-s="none">'+esc((n.checklist.code||"")+" · "+(n.checklist.answer||""))+'</span>':"")+'</div>'+
       '<div class="note-body"><p class="note-text clickable" data-edit="'+n.id+'" title="Click to edit">'+esc(n.text)+'</p>'+
+        (isCk?'<div class="ansrow">'+CK_ANSWERS.map(a=>'<button type="button" data-ckedit="'+n.id+'" data-a="'+a+'" aria-pressed="'+(n.checklist.answer===a)+'">'+a+'</button>').join("")+'</div>'+
+        '<p style="font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3);margin:6px 0 0">Suggested '+esc(n.checklist.suggestedSev||"major")+' — override with Major/Minor below. Only No/Unclear reach the report.</p>':"")+
         tagRow(n)+
         '<div class="note-meta"><div class="note-acts">'+
           '<button type="button" class="mark m-maj" aria-pressed="'+(sevOf(n)==="major"&&n.status!=="rejected")+'" data-sev-btn="major" data-id="'+n.id+'">Major</button>'+
@@ -1151,67 +1256,25 @@ function vTriage(){
   }).join(""):'<div class="empty">Nothing to triage yet. Add your first-pass readings in the previous step.</div>');
 }
 
-/* ---- 04 appraisal ---- */
+/* ---- 04 report (05 polish) ---- */
 function equatorPanel(){
-  return '<div class="eqpanel"><h3>EQUATOR Network — pick the reporting guideline that fits this study</h3>'+
-  '<p>Checklist items below are prompts, not a substitute for the full guideline. Open the matching EQUATOR checklist and verify each flagged point against it. Library: <a href="'+EQUATOR_LIB+'" target="_blank" rel="noopener">AI / ML studies on EQUATOR</a> · main site <a href="https://www.equator-network.org/" target="_blank" rel="noopener">equator-network.org</a> · scraped '+esc(EQUATOR_ACCESSED)+'.</p>'+
+  return '<div class="eqpanel"><h3>EQUATOR Network — reporting guidelines for AI studies</h3>'+
+  '<p>Checklist prompts in First read are not a substitute for the full guideline. Open the matching EQUATOR checklist and verify each flagged point against it. Library: <a href="'+EQUATOR_LIB+'" target="_blank" rel="noopener">AI / ML studies on EQUATOR</a> · scraped '+esc(EQUATOR_ACCESSED)+'.</p>'+
   '<div class="eqlinks">'+EQUATOR.map(g=>'<a href="'+g.url+'" target="_blank" rel="noopener" title="'+esc(g.use)+'">'+esc(g.ab)+'</a>').join("")+'</div></div>';
 }
-function vAppraise(){
-  let h=head(4);
-  h+='<div class="routes">'+
-    [[true,"Run the checklist","Score each item 1–5. Only scores 1–2 become report points, inside Major/Minor."],
-     [false,"Skip it","The report works either way. You can open this checklist at any time."]].map(r=>
-     '<label class="route" data-checked="'+(S.ai.on===r[0])+'"><input type="radio" name="aiOn" value="'+(r[0]?"yes":"no")+'"'+(S.ai.on===r[0]?" checked":"")+'>'+
-     '<span class="route-k">'+(r[0]?"AI checklist":"No checklist")+'</span><span class="route-t">'+r[1]+'</span><span class="route-d">'+r[2]+'</span></label>').join("")+
-   '</div>';
-  if(S.ai.on===true){
-    h+=equatorPanel();
-    const fl=aiConcerns("major").length+aiConcerns("minor").length,un=aiUnclear().length,sc=aiScored().length,tot=aiItems().length;
-    h+='<div class="figures">'+
-      '<div class="fig" data-s="major"><div class="n">'+fl+'</div><div class="l">Flagged (1–2)</div></div>'+
-      '<div class="fig"><div class="n">'+un+'</div><div class="l">Unclear</div></div>'+
-      '<div class="fig"><div class="n">'+sc+'</div><div class="l">Scored</div></div>'+
-      '<div class="fig"><div class="n">'+tot+'</div><div class="l">Items</div></div>'+
-    '</div>';
-    h+='<div class="note-blk"><b>Only scores 1–2 merge into the report.</b> Each flagged item lands inside its Major / Minor section (Methods, Results, …) carrying the item code and score, so the editor sees what prompted it. Scores 3–5, Unclear and N/A stay in this step and never reach the PDF — scores 4–5 mean addressed, Unclear means cannot tell.</div>';
-    h+='<div class="table"><div class="thead"><span>Item</span><span>Question</span><span>Score 1–5 · Unclear · N/A</span></div>'+
-      aiItems().map(t=>{
-        const a=(S.ai.ans||{})[t.id]||{val:"",note:""};
-        const fl2=aiIsConcern(a);
-        return '<div class="trow'+(fl2?" is-flagged":"")+'" data-sev="'+esc(t.sev)+'">'+
-          '<div class="tcell-code"><b>'+esc(t.code||t.id)+'</b>'+esc(t.sev)+'<br>'+esc(t.sec)+'</div>'+
-          '<div class="tcell-body"><p class="q">'+esc(t.q)+'</p><p class="hint">'+esc(t.hint)+'</p>'+
-            '<p class="src">'+esc(t.src||"")+'</p>'+
-            '<input class="note-in" data-ainote="'+t.id+'" placeholder="Note for the editor (optional)" value="'+esc(a.note||"")+'"></div>'+
-          '<div class="tcell-ans">'+AI_VALS.map(o=>
-            '<button type="button" data-ai="'+t.id+'" data-v="'+o.v+'" aria-pressed="'+(a.val===o.v)+'" title="'+esc(o.t)+'">'+esc(o.v==="unclear"?"unclear":o.v==="na"?"n/a":o.v)+'</button>').join("")+'</div>'+
-        '</div>';
-      }).join("")+'</div>';
-  }else if(S.ai.on===false){
-    h+='<div class="empty">Checklist skipped. Reports written without it are perfectly normal — the checklist is a prompt for your judgement, never a substitute for it.</div>';
-  }else{
-    h+='<div class="empty">Choose above. Nothing is committed either way, and the checklist can be reopened at any point before you file the report.</div>';
-  }
-  return h;
-}
-
-/* ---- 05 report ---- */
 function groups(){
   const secs=sectionsList();
   const g={major:{},minor:{}};
   secs.forEach(s=>{g.major[s]=[];g.minor[s]=[];});
   const un=[];
-  live().forEach(n=>{
+  reportableLive().forEach(n=>{
     const s=sevOf(n);
     let sec=n.section||"General";
-    /* keep notes whose section is no longer in the paper-sections list
-       under their own bucket (e.g. legacy "General") instead of misfiling */
     if(!Object.prototype.hasOwnProperty.call(g.major,sec)){g.major[sec]=[];g.minor[sec]=[];}
     if(s==="major")g.major[sec].push(n);
     else if(s==="minor")g.minor[sec].push(n);
-    else un.push(n);
   });
+  live().filter(n=>!sevOf(n)).forEach(n=>un.push(n));
   return {g,un};
 }
 function springerPanel(){
@@ -1228,13 +1291,15 @@ function springerPanel(){
 }
 function vReport(){
   const {g,un}=groups();
-  let h=head(5);
+  const ckNo=ckCount("No"),ckUn=ckCount("Unclear");
+  const usedLists=[...new Set(allComments().filter(c=>c.kind==="checklist"&&c.checklist).map(c=>ckListOf(c.checklist.listId).name))];
+  let h=head(4);
   if(un.length)h+='<div class="note-blk" style="border-color:var(--minor);background:var(--minor-wash)"><b>'+un.length+' reading'+(un.length>1?"s":"")+' still untagged.</b> They are held out of the report until you give them a weight in the second read.</div>';
   h+='<div class="sheet"><div class="sheet-band"><span class="t">Peer-review report</span><span class="m">'+
     (S.rec?esc(S.rec.replace(/^./,c=>c.toUpperCase())):"No recommendation set")+'</span></div>'+
     '<div class="sheet-in">'+
     '<h2 class="rep-sheet-title">Peer-review report</h2>'+
-    '<p class="rep-ms">'+esc(S.ms||"Untitled manuscript")+' · '+(aiOn()?"AI checklist run":"no AI checklist")+'</p>';
+    '<p class="rep-ms">'+esc(S.ms||"Untitled manuscript")+' · '+(usedLists.length?("checklists: "+esc(usedLists.join(", "))):"no checklist used")+'</p>';
   h+='<div class="rsect"><div class="rsect-h"><span>Overall impression</span></div>'+
     '<div class="rline"><div class="rline-l"><b>Intro</b></div><div class="rline-v" data-r="intro">'+
     (S.report.intro?esc(S.report.intro):'<span class="rempty">Click to write your opening. One or two sentences on what the paper is trying to do and whether it succeeds.</span>')+
@@ -1245,22 +1310,21 @@ function vReport(){
     /* paper sections first, then any leftover buckets (e.g. legacy General) */
     const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
     order.forEach(sec=>{
-      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===sec);
-      if(!arr.length&&!ai.length)return;
+      const arr=obj[sec]||[];
+      if(!arr.length)return;
       s+='<p class="rsub">'+esc(sec)+'</p>';
       arr.forEach(n=>{const core=isCore(n.id);
-        s+='<div class="rline'+(core?" is-core":"")+'"><div class="rline-l"><b>'+esc(lineLabel(n))+'</b>'+esc(n.section||"")+(core?'<br>★ CORE':"")+'</div>'+
+        const isCk=n.kind==="checklist"&&n.checklist;
+        s+='<div class="rline'+(core?" is-core":"")+(isCk?" is-ai":"")+'"><div class="rline-l"><b>'+esc(lineLabel(n))+'</b>'+esc(n.section||"")+(core?'<br>★ CORE':"")+(isCk?'<br>'+esc(n.checklist.code||"")+" · "+esc(n.checklist.answer||""):"")+'</div>'+
         '<div class="rline-v" data-r="'+n.id+'">'+(core?"<b>":"")+esc(n.text)+(core?"</b>":"")+((n.tags||[]).length?'<span class="sevtag" data-s="'+esc(sev)+'" style="margin-left:8px">'+esc(n.tags[0])+'</span>':"")+'</div>'+
         '<button type="button" class="rline-x" data-rej="'+n.id+'" title="Strike this point">×</button></div>';});
-      ai.forEach(({t,a})=>{s+='<div class="rline is-ai"><div class="rline-l"><b>'+esc(t.code||t.id)+'</b>SCORE '+esc(a.val)+'</div>'+
-        '<div class="rline-v"><b>'+esc(t.q)+'</b>'+(a.note?' — '+esc(a.note):"")+'</div><span></span></div>';});
       s+='<button type="button" class="addrow" data-addline data-sec="'+esc(sec)+'" data-sev="'+sev+'">+ Add a '+sev+' point in '+esc(sec)+'</button>';
     });
     return s+'</div>';
   };
   h+=block("Major concerns","major",g.major);
   h+=block("Minor points","minor",g.minor);
-  /* No separate AI section: only scores 1–2 appear above, inside Major/Minor. Scores 3–5 / Unclear / N/A never reach the report. */
+  /* Checklist Yes / N-A answers never reach the report — only No / Unclear sentences above. */
   h+='<div class="rsect letter-sect"><div class="rsect-h"><span>Letter to the editor</span></div>'+
     '<div class="rline"><div class="rline-l"><b>Private</b></div><div class="rline-v" data-r="letter">'+
     (S.report.letter?esc(S.report.letter):'<span class="rempty">Click to add a short private note to the editor — the part the authors should not read.</span>')+
@@ -1276,7 +1340,7 @@ function vReport(){
     '<label class="rec" data-checked="'+(S.rec===r[0])+'"><input type="radio" name="rec" value="'+r[0]+'"'+(S.rec===r[0]?" checked":"")+'>'+
     '<span class="rec-t">'+r[1]+'</span><span class="rec-d">'+r[2]+'</span></label>').join("")+'</div>';
   h+='<div class="foot" style="margin-top:20px"><p class="meta" id="rmeta">'+
-    live().length+' report point'+(live().length===1?"":"s")+' in the hierarchy'+(aiOn()?' · checklist flagged '+(aiConcerns("major").length+aiConcerns("minor").length):'')+(S.core&&S.core.length?' · ★ '+S.core.length+'/3 core':"")+'</p>'+
+    reportableLive().length+' report point'+(reportableLive().length===1?"":"s")+' in the hierarchy'+(ckNo||ckUn?' · checklist No '+ckNo+' · Unclear '+ckUn:'')+(S.core&&S.core.length?' · ★ '+S.core.length+'/3 core':"")+'</p>'+
     '<div class="acts"><button type="button" class="btn sec sm" id="btn-copy">Copy report</button>'+
     '<button type="button" class="btn sec sm" id="btn-txt">Save as TXT</button>'+
     '<button type="button" class="btn sec sm" id="btn-pltpy">Save .pltpy</button>'+
@@ -1284,7 +1348,7 @@ function vReport(){
   return h;
 }
 
-/* ---- 06 polish: providers (authored marks, one stroke system) ---- */
+/* ---- 05 polish: providers (authored marks, one stroke system) ---- */
 const PROVIDERS=[
  {id:"gemini",name:"Gemini",api:"gemini",base:"https://generativelanguage.googleapis.com/v1beta"},
  {id:"openai",name:"OpenAI",api:"openai",base:"https://api.openai.com/v1"},
@@ -1331,20 +1395,20 @@ function draftText(){
     let out="";
     const listed=sectionsList();
     const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
-    order.forEach(s=>{const a=obj[s]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===s);
-      if(!a.length&&!ai.length)return;
+    order.forEach(s=>{const a=obj[s]||[];
+      if(!a.length)return;
       out+="\n### "+s+"\n";let i=0;
       a.forEach(n=>{i++;const core=isCore(n.id);
-        out+=i+". ["+(n.line?("L"+n.line):"General")+"] "+(core?"**CORE CONCERN — ":"")+n.text+(core?"**":"")+((n.tags||[]).length?" ("+n.tags.join(", ")+")":"")+"\n";});
-      ai.forEach(({t:it,a:an})=>{i++;out+=i+". ["+(it.code||it.id)+" — score "+an.val+"] "+it.q+(an.note?" — "+an.note:"")+"\n";});
+        const ck=n.kind==="checklist"&&n.checklist?(" ["+ckAbbr(n.checklist.listId)+" "+(n.checklist.code||"")+" · "+(n.checklist.answer||"")+"]"):"";
+        out+=i+". ["+(n.line?("L"+n.line):"General")+"] "+(core?"**CORE CONCERN — ":"")+n.text+(core?"**":"")+ck+((n.tags||[]).length?" ("+n.tags.join(", ")+")":"")+"\n";});
     });
     return out?("## "+title+"\n"+out):"";
   };
 
   t+=sec("Major concerns",g.major,"major");
   t+=sec("Minor points",g.minor,"minor");
-  if(S.ai.on===false)t+="\n## AI checklist\nSkipped (optional).\n";
-  else if(aiOn())t+="\n## AI checklist\nOnly scores 1–2 are listed above inside Major/Minor. Scores 3–5, Unclear and N/A are not exported. EQUATOR: "+EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+").\n";
+  const usedLists=[...new Set(allComments().filter(c=>c.kind==="checklist"&&c.checklist).map(c=>ckListOf(c.checklist.listId).name))];
+  if(usedLists.length)t+="\n## Checklists used\n"+usedLists.join(", ")+". Only No / Unclear answers are listed above inside Major/Minor. Yes and N/A stay out of the report. EQUATOR: "+EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+").\n";
   t+="\n## Letter to the editor\n"+(S.report.letter||"")+"\n";
   t+="\nRecommendation: "+(S.rec||"—")+"\n";
   t+="\n## AI-use declaration\n"+springerText()+"\n";
@@ -1354,9 +1418,10 @@ function draftText(){
 function yamlEsc(v){return '"'+String(v==null?"":v).replace(/\\/g,"\\\\").replace(/"/g,'\\"').replace(/\n/g," ")+'"';}
 function pltpyText(){
   const c=counters();
+  const usedLists=[...new Set(allComments().filter(x=>x.kind==="checklist"&&x.checklist).map(x=>x.checklist.listId))];
   const fm=["---",
    "format: pltpy",
-   "pltpy_version: 1",
+   "pltpy_version: 2",
    "id: "+yamlEsc(S.id||""),
    "manuscript: "+yamlEsc(S.ms||"Untitled manuscript"),
    "created: "+yamlEsc(new Date(S.createdAt||Date.now()).toISOString()),
@@ -1364,8 +1429,8 @@ function pltpyText(){
    "step: "+(S.step||1),
    "recommendation: "+yamlEsc(S.rec||""),
    "sections: ["+sectionsList().map(s=>yamlEsc(s)).join(", ")+"]",
-   "counts: {total: "+S.notes.length+", major: "+c.maj+", minor: "+c.min+", untagged: "+c.un+", rejected: "+c.rj+"}",
-   "ai_checklist: "+(S.ai.on===true?"run":S.ai.on===false?"skipped":"not-opened"),
+   "counts: {total: "+allComments().length+", major: "+c.maj+", minor: "+c.min+", untagged: "+c.un+", rejected: "+c.rj+"}",
+   "checklists_used: ["+usedLists.map(s=>yamlEsc(s)).join(", ")+"]",
    "core_concerns: ["+(S.core||[]).map(id=>yamlEsc(id)).join(", ")+"]",
    "springer_ai_use: "+yamlEsc((S.springer||{}).level||""),
    "springer_ref: "+yamlEsc(SPRINGER_URL+" (accessed "+SPRINGER_ACCESSED+")"),
@@ -1375,11 +1440,12 @@ function pltpyText(){
   let md="\n# Peer-review report — "+(S.ms||"Untitled manuscript")+"\n\n";
   md+="Exported "+new Date().toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})+" · PlatyPeer (.pltpy)\n\n";
   md+=draftText()+"\n\n## All comments (timestamped version history)\n\n";
-  const notes=[...S.notes].sort((a,b)=>(a.at||0)-(b.at||0));
+  const notes=[...allComments()].sort((a,b)=>(a.at||0)-(b.at||0));
   if(!notes.length)md+="_No comments saved._\n";
   else notes.forEach(n=>{
     const when=n.at?new Date(n.at).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
-    md+="- ["+when+"] ["+(n.line?("L"+n.line):"General")+"] ["+esc(n.section||"")+"] ["+(sevOf(n)||"untagged")+"]"+(isCore(n.id)?" [★ CORE]":"")+(n.status==="rejected"?" [struck]":"")+" "+String(n.text||"").replace(/\n/g," ")+"\n";
+    const ck=n.kind==="checklist"&&n.checklist?(" ["+n.checklist.listId+" "+(n.checklist.code||"")+" "+(n.checklist.answer||"")+"]"):"";
+    md+="- ["+when+"] ["+(n.line?("L"+n.line):"General")+"] ["+esc(n.section||"")+"] ["+(sevOf(n)||"untagged")+"]"+ck+(isCore(n.id)?" [★ CORE]":"")+(n.status==="rejected"?" [struck]":"")+" "+String(n.text||"").replace(/\n/g," ")+"\n";
   });
   md+="\n## Event history\n\n";
   (S.history||[]).forEach(e=>{md+="- "+(e.t||"")+" · "+e.ev+(e.detail?" — "+e.detail:"")+"\n";});
@@ -1403,7 +1469,11 @@ function parsePltpy(text){
   const m=String(text||"").match(/```pltpy-state\s+([A-Za-z0-9+/=\s]+)\s*```/);
   if(!m)throw new Error("No embedded review state found — is this a .pltpy file exported by PlatyPeer?");
   const j=JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g,"")))));
-  if(!j||typeof j!=="object"||!Array.isArray(j.notes))throw new Error("Unrecognised review state.");
+  if(!j||typeof j!=="object")throw new Error("Unrecognised review state.");
+  if(!Array.isArray(j.comments)&&Array.isArray(j.notes)){
+    j.comments=j.notes.map(n=>({id:n.id||uid(),kind:"general",text:String(n.text||""),cls:(n.stamp||n.severity||""),core:false,line:(n.line!=null?String(n.line):""),section:n.section||"",tags:n.tags||[],status:n.status||"raw",at:n.at||Date.now(),dirty:true}));
+  }
+  if(!Array.isArray(j.comments))throw new Error("Unrecognised review state.");
   return j;
 }
 function promptText(){
@@ -1420,7 +1490,7 @@ function promptText(){
 }
 function vPolish(){
   const p=S.polish;
-  let h=head(6);
+  let h=head(5);
   h+='<div class="privacy"><b>What leaves this device</b>Only the draft report you would submit — the Intro, the Major and Minor points, the appraisal findings, the letter, and the recommendation. Because that report is built from your readings, your own wording travels with it. <b>The manuscript does not.</b> This tool has no field for manuscript text, so the polish step cannot send what it has never held; the only manuscript-derived string in a request is the identifier you typed into the header yourself. If even that is too much for the journal\'s rules, use the copy-out route below and keep everything on this machine.</div>';
   h+='<div class="routes">'+
     [["key","Your own key","Send the draft to a model you already pay for. The key stays in this browser and the request goes straight from your machine to the endpoint you name — never through this tool."],
@@ -1512,27 +1582,52 @@ function wire(){
   const cta=F.querySelector("#cta-read");
   if(cta)cta.addEventListener("click",()=>go(2));
   Q('input[name="rec"]').forEach(r=>r.addEventListener("change",()=>{S.rec=r.value;logHist("Recommendation set",r.value);save();render();}));
-  Q('input[name="aiOn"]').forEach(r=>r.addEventListener("change",()=>{S.ai.on=(r.value==="yes");
-    if(r.value==="yes")hitEvent("checklist","checklist_run");
-    logHist(r.value==="yes"?"AI checklist started":"AI checklist skipped");
-    save();render();}));
   Q('input[name="route"]').forEach(r=>r.addEventListener("change",()=>{S.polish.route=r.value;S.polish.out="";S.polish.state="idle";S.polish.msg="";save();render();}));
 
-  aiItems().forEach(t=>{
-    Q('[data-ai="'+t.id+'"]').forEach(b=>b.addEventListener("click",()=>{
-      const v=b.getAttribute("data-v");
-      const cur=((S.ai.ans[t.id]||{}).val===v?"":v);
-      S.ai.ans[t.id]=Object.assign({},S.ai.ans[t.id],{val:cur});
-      if(cur)logHist("Checklist scored",(t.code||t.id)+" → "+cur);
-      save();render();}));
-    Q('[data-ainote="'+t.id+'"]').forEach(i=>i.addEventListener("input",()=>{
-      S.ai.ans[t.id]=Object.assign({},S.ai.ans[t.id],{note:i.value});save();}));
-  });
+  /* checklist composer (First read merge) */
+  Q("[data-cklist]").forEach(b=>b.addEventListener("click",()=>{
+    S.checklists.selected=b.getAttribute("data-cklist");
+    const items=ckItemsOf(S.checklists.selected);
+    CKUI.item=(items[0]&&items[0].id)||"";CKUI.cls=(items[0]&&items[0].sev)||"major";
+    save();render();}));
+  const ckItem=F.querySelector("#ckitem");
+  if(ckItem)ckItem.addEventListener("change",()=>{
+    CKUI.item=ckItem.value;
+    const it=ckItemsOf(S.checklists.selected).find(x=>x.id===CKUI.item);
+    if(it)CKUI.cls=it.sev||"major";
+    render();
+    const nn=F.querySelector("#cknote");if(nn){nn.focus();}});
+  Q("[data-ckans]").forEach(b=>b.addEventListener("click",()=>{CKUI.answer=b.getAttribute("data-ckans");save();render();}));
+  Q("[data-ckcls]").forEach(b=>b.addEventListener("click",()=>{
+    CKUI.cls=(CKUI.cls===b.getAttribute("data-ckcls")?"":b.getAttribute("data-ckcls"));render();}));
+  const ckNote=F.querySelector("#cknote");
+  if(ckNote)ckNote.addEventListener("input",()=>{CKUI.note=ckNote.value;});
+  const addCk=F.querySelector("#addCk");
+  if(addCk)addCk.addEventListener("click",()=>{
+    const sel=S.checklists.selected||"iaims";
+    const item=ckItemsOf(sel).find(x=>x.id===CKUI.item)||ckItemsOf(sel)[0];
+    if(!item)return;
+    const lineEl=F.querySelector("#ckline");
+    const line=lineEl&&lineEl.value?String(lineEl.value):"";
+    const note=(F.querySelector("#cknote")||{}).value||CKUI.note||"";
+    const answer=CKUI.answer||"No";
+    const cls=CKUI.cls||item.sev||"major";
+    const sec=aiSecOf(item);
+    const text=ckSentence(sel,item,answer,note.trim(),line);
+    S.comments.push({id:uid(),kind:"checklist",text:text,cls:cls,core:false,line:line,section:sec,tags:[],
+      status:"raw",at:Date.now(),dirty:false,
+      checklist:{listId:sel,itemId:item.id,code:item.code||"",question:item.q||"",desc:item.hint||"",src:item.src||"",suggestedSev:item.sev||"major",answer:answer,note:note.trim()}});
+    if(!S.checklists.used.includes(sel))S.checklists.used.push(sel);
+    S.core=S.core||[];
+    CKUI.note="";CKUI.answer="No";
+    logHist("Checklist comment added","["+sel+" "+(item.code||"")+"] "+answer+" → "+cls);
+    hitEvent("checklist","checklist_run");
+    save();render();});
 
   const add=(le,se,te,st)=>{
     const lv=le?F.querySelector(le):null,sv=se?F.querySelector(se):null,tv=F.querySelector(te);
     if(!tv)return;const v=tv.value.trim();if(!v)return;
-    S.notes.push({id:uid(),line:lv&&lv.value?lv.value:"",section:sv?sv.value:"General",text:v,tags:[],severity:"",status:st||"raw",at:Date.now()});
+    S.comments.push({id:uid(),kind:"general",line:lv&&lv.value?String(lv.value):"",section:sv?sv.value:"General",text:v,tags:[],cls:"",status:st||"raw",at:Date.now(),dirty:true});
     logHist("Comment added",(lv&&lv.value?("L"+lv.value+" "):"")+v.slice(0,80));
     save();render();
   };
@@ -1567,29 +1662,45 @@ function wire(){
   Q("[data-rmtag]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();
     const n=a.getAttribute("data-rmtag");
     S.customTags=S.customTags.filter(t=>t.name!==n);
-    S.notes.forEach(x=>{x.tags=(x.tags||[]).filter(t=>t!==n);});save();render();}));
+    allComments().forEach(x=>{x.tags=(x.tags||[]).filter(t=>t!==n);});save();render();}));
 
   Q("[data-open]").forEach(b=>b.addEventListener("click",()=>{
     const id=b.getAttribute("data-open");
     S.openTags=(S.openTags===id?"":id);render();}));
   Q("[data-tag]").forEach(b=>b.addEventListener("click",()=>{
-    const n=S.notes.find(x=>x.id===b.getAttribute("data-id"));if(!n)return;
+    const n=allComments().find(x=>x.id===b.getAttribute("data-id"));if(!n)return;
     const nm=b.getAttribute("data-tag");n.tags=n.tags||[];
     n.tags=n.tags.includes(nm)?n.tags.filter(t=>t!==nm):n.tags.concat([nm]);
-    n.severity=n.tags.some(t=>tagSev(t)==="major")?"major":n.tags.some(t=>tagSev(t)==="minor")?"minor":"";
     if(n.tags.length&&(n.status==="raw"||!n.status))n.status="keep";
     save();render();}));
   Q("[data-sev-btn]").forEach(b=>b.addEventListener("click",()=>{
-    const n=S.notes.find(x=>x.id===b.getAttribute("data-id"));if(!n)return;
+    const n=allComments().find(x=>x.id===b.getAttribute("data-id"));if(!n)return;
     const v=b.getAttribute("data-sev-btn");
-    if(sevOf(n)===v&&n.stamp){n.stamp="";}
-    else{n.stamp=v;if(n.status==="rejected")n.status="keep";else if(!n.status||n.status==="raw")n.status="keep";}
+    if(sevOf(n)===v&&n.cls){n.cls="";}
+    else{n.cls=v;if(n.status==="rejected")n.status="keep";else if(!n.status||n.status==="raw")n.status="keep";}
     save();render();}));
   Q("[data-rej]").forEach(b=>b.addEventListener("click",()=>{
-    const n=S.notes.find(x=>x.id===b.getAttribute("data-rej"));
-    if(n){n.status=(n.status==="rejected"?((n.severity||(n.tags||[]).length)?"keep":"raw"):"rejected");save();render();}}));
-  Q("[data-del]").forEach(b=>b.addEventListener("click",()=>{
-    S.notes=S.notes.filter(x=>x.id!==b.getAttribute("data-del"));save();render();}));
+    const n=allComments().find(x=>x.id===b.getAttribute("data-rej"));
+    if(n){n.status=(n.status==="rejected"?(((n.cls||"")||(n.tags||[]).length)?"keep":"raw"):"rejected");save();render();}}));
+  /* X button: animate out, then delete (works in First + Second read) */
+  Q("[data-cdel]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    const id=b.getAttribute("data-cdel");
+    const card=b.closest("[data-card]");
+    const doDel=()=>{S.comments=S.comments.filter(x=>x.id!==id);S.core=(S.core||[]).filter(x=>x!==id);logHist("Comment deleted",id);save();render();};
+    if(card&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+      card.classList.add("is-leaving");
+      setTimeout(doDel,190);
+    }else doDel();}));
+  /* checklist answer editor in Second read: re-answer without wiping a hand-edited sentence */
+  Q("[data-ckedit]").forEach(b=>b.addEventListener("click",()=>{
+    const n=allComments().find(x=>x.id===b.getAttribute("data-ckedit"));if(!n||!n.checklist)return;
+    const v=b.getAttribute("data-a");
+    n.checklist.answer=v;
+    if(!n.dirty)n.text=ckSentence(n.checklist.listId,{code:n.checklist.code,q:n.checklist.question,hint:n.checklist.desc},v,n.checklist.note||"",n.line);
+    if(v==="Yes"||v==="N/A")logHist("Checklist re-answered",(n.checklist.code||"")+" → "+v+" (out of report)");
+    else logHist("Checklist re-answered",(n.checklist.code||"")+" → "+v);
+    save();render();}));
 
   /* click-to-edit */
   Q("[data-edit]").forEach(p=>p.addEventListener("click",()=>startEdit(p,p.getAttribute("data-edit"))));
@@ -1604,10 +1715,10 @@ function wire(){
     const q2=(nq?nq.value:"").toLowerCase(),s=nsec?nsec.value:"";
     let v=0;
     F.querySelectorAll("[data-card]").forEach(c=>{
-      const n=S.notes.find(x=>x.id===c.getAttribute("data-card"));if(!n)return;
+      const n=allComments().find(x=>x.id===c.getAttribute("data-card"));if(!n)return;
       const ok=(!q2||n.text.toLowerCase().includes(q2)||String(n.line).includes(q2))&&(!s||n.section===s);
       c.style.display=ok?"":"none";if(ok)v++;});
-    const nc=F.querySelector("#ncount");if(nc)nc.textContent=v+" of "+S.notes.length;};
+    const nc=F.querySelector("#ncount");if(nc)nc.textContent=v+" of "+allComments().length;};
     if(nq)nq.addEventListener("input",apply);if(nsec)nsec.addEventListener("change",apply);}
 
   Q("[data-addline]").forEach(b=>b.addEventListener("click",()=>{
@@ -1617,7 +1728,7 @@ function wire(){
       "<div class='capture-row full'><div class='f'><label for='mText'>Point</label><textarea class='inp' id='mText' rows='3'></textarea></div></div>","Add",()=>{
       const t=$("#mText").value.trim();if(!t){closeModal();return;}
       const tg=$("#mTag").value;
-      S.notes.push({id:uid(),line:$("#mLine").value||"",section:sec,text:t,tags:tg?[tg]:[],severity:sev,status:"added",at:Date.now()});
+      S.comments.push({id:uid(),kind:"general",line:$("#mLine").value||"",section:sec,text:t,tags:tg?[tg]:[],cls:sev,status:"added",at:Date.now(),dirty:true});
       save();render();closeModal();});}));
 
   Q("[data-core]").forEach(b=>b.addEventListener("click",()=>{
@@ -1695,12 +1806,12 @@ function copyText(t,btn,label){
     ta.remove();});
 }
 function startEdit(el,id){
-  const n=S.notes.find(x=>x.id===id);if(!n||el.querySelector("textarea,input"))return;
+  const n=allComments().find(x=>x.id===id);if(!n||el.querySelector("textarea,input"))return;
   const ta=document.createElement("textarea");ta.className="editbox";ta.rows=3;ta.value=n.text;
   el.textContent="";el.append(ta);ta.focus();ta.select();
   let done=false;
   const commit=ok=>{if(done)return;done=true;
-    if(ok&&ta.value.trim()&&ta.value.trim()!==n.text){n.text=ta.value.trim();if(n.status!=="rejected"&&n.status!=="added")n.status="edited";n.editedAt=Date.now();logHist("Comment edited",(n.line?("L"+n.line+" "):"")+n.text.slice(0,80));}
+    if(ok&&ta.value.trim()&&ta.value.trim()!==n.text){n.text=ta.value.trim();n.dirty=true;if(n.status!=="rejected"&&n.status!=="added")n.status="edited";n.editedAt=Date.now();logHist("Comment edited",(n.line?("L"+n.line+" "):"")+n.text.slice(0,80));}
     save();render();};
   ta.addEventListener("blur",()=>commit(true));
   ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))commit(true);if(e.key==="Escape"){done=true;render();}e.stopPropagation();});
@@ -1962,7 +2073,8 @@ async function savePdf(){
   doc.setFont("helvetica","bold");doc.setFontSize(21);setF(C.ink);
   doc.text("Peer-review report",ML,y);y+=9;
   doc.setFont("courier","normal");doc.setFontSize(8);setF(C.ink3);
-  doc.text(String(S.ms||"Untitled manuscript")+"  ·  "+(aiOn()?"AI CHECKLIST RUN":"NO AI CHECKLIST"),ML,y,{charSpace:.3});
+  const _used=[...new Set(allComments().filter(c=>c.kind==="checklist"&&c.checklist).map(c=>ckAbbr(c.checklist.listId)))];
+  doc.text((String(S.ms||"Untitled manuscript")+"  ·  "+(_used.length?("CHECKLISTS: "+_used.join(", ")):"NO CHECKLIST")).slice(0,110),ML,y,{charSpace:.3});
   y+=3;
   setD(C.rule);doc.setLineWidth(.3);doc.line(ML,y,W-MR,y);y+=7;
   const {g}=groups();
@@ -1980,22 +2092,22 @@ async function savePdf(){
     const listed=sectionsList();
     const order=listed.concat(Object.keys(obj).filter(x=>!listed.includes(x)));
     order.forEach(sec=>{
-      const arr=obj[sec]||[],ai=aiConcerns(sev).filter(x=>aiSecOf(x.t)===sec);
-      if(!arr.length&&!ai.length)return;
+      const arr=obj[sec]||[];
+      if(!arr.length)return;
       if(!any){sectHead(title,sev,sev);any=true;}
       need(12);subHead(sec);
-      arr.forEach(n=>point(lineLabel(n),(n.section||"")+(isCore(n.id)?" ★CORE":""),n.text,false,sev,isCore(n.id)));
-      /* only scores 1–2 (No-equivalent) reach the PDF, merged here — never a separate AI section */
-      ai.forEach(({t,a})=>point(t.code||t.id,"SCORE "+a.val,t.q+(a.note?" — "+a.note:""),true,sev));
+      /* Only No/Unclear checklist sentences reach the PDF — Yes/N-A already excluded by groups() */
+      arr.forEach(n=>{const isCk=n.kind==="checklist"&&n.checklist;
+        point(lineLabel(n),(n.section||"")+(isCk?" "+(n.checklist.code||"")+" "+(n.checklist.answer||""):"")+(isCore(n.id)?" ★CORE":""),n.text,isCk,sev,isCore(n.id));});
     });
   };
   block("Major concerns","major",g.major);
   block("Minor points","minor",g.minor);
-  /* No "checks passed" section: Yes-equivalent scores (4–5) stay out of the PDF by design. */
+  /* No "checks passed" section: Yes / N-A answers stay out of the PDF by design. */
   sectHead("AI-use declaration — Springer Nature",null);
   doc.splitTextToSize(springerText(),CW).forEach(ln=>{need(4.5);doc.setFont("helvetica","normal");doc.setFontSize(8.5);setF(C.ink2);doc.text(ln,ML,y);y+=4.1;});
   y+=3;
-  if(aiOn()){
+  if(allComments().some(c=>c.kind==="checklist")){
     doc.splitTextToSize("EQUATOR: "+EQUATOR_LIB+" (accessed "+EQUATOR_ACCESSED+")",CW).forEach(ln=>{need(4.5);doc.setFont("courier","normal");doc.setFontSize(7);setF(C.ink3);doc.text(ln,ML,y);y+=3.8;});
     y+=3;
   }
@@ -2011,7 +2123,7 @@ async function savePdf(){
 }
 
 /* ---- nav, glossary, stats, reset ---- */
-function go(n){S.step=Math.min(6,Math.max(1,n));save();render();
+function go(n){S.step=Math.min(5,Math.max(1,n));save();render();
   try{const F=$("#field");const y=F.getBoundingClientRect().top+window.scrollY-70;window.scrollTo({top:y,behavior:"smooth"});}catch(e){}}
 function openGlossary(){
   openModal("AI Glossary",
@@ -2033,11 +2145,11 @@ function openReviews(){
   const lib=readLib();
   const ids=Object.keys(lib).sort((a,b)=>((lib[b]||{}).updatedAt||0)-((lib[a]||{}).updatedAt||0));
   const rows=ids.length?ids.map(id=>{
-    const r=lib[id]||{};const n=(r.notes||[]).length;
+    const r=lib[id]||{};const n=((r.comments||[]).length)||((r.notes||[]).length)||0;
     const when=r.updatedAt?new Date(r.updatedAt).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
     return '<div class="revrow"><div class="rm"><b>'+esc(r.ms||"Untitled manuscript")+'</b><span>'+n+' comments · updated '+esc(when)+(id===S.id?" · current":"")+'</span></div>'+
     '<button type="button" class="btn sec sm" data-openrev="'+id+'">Continue</button>'+
-    '<button type="button" class="btn gh sm" data-delrev="'+id+'">Delete</button></div>';
+    '<button type="button" class="btn gh sm" data-delrev="'+id+'" data-delname="'+esc(r.ms||"Untitled manuscript")+'">Delete</button></div>';
   }).join(""):'<div class="empty">No saved reviews on this device yet.</div>';
   openModal("My reviews — continue on this device",
     "<p style='margin:0;font-size:13.5px;color:var(--ink-2)'>Reviews are stored in this browser. Continue one, export it as a <b>.pltpy</b> file (YAML frontmatter + Markdown + timestamped history), or import a .pltpy to continue elsewhere.</p>"+
@@ -2050,20 +2162,36 @@ function openReviews(){
     saveNow();
     const bb=base();S=Object.assign(bb,lib2[id]);
     S.invite=Object.assign(base().invite,lib2[id].invite||{});
-    S.ai=Object.assign({on:null,ans:{}},lib2[id].ai||{});
     S.report=Object.assign({intro:"",letter:""},lib2[id].report||{});
     S.polish=Object.assign(base().polish,lib2[id].polish||{});
     S.springer=Object.assign({level:"",tool:"",detail:""},lib2[id].springer||{});
+    S.checklists=Object.assign({selected:"iaims",used:[]},lib2[id].checklists||{});
+    if(!Array.isArray(S.comments))S.comments=[];
+    if(!S.comments.length&&Array.isArray(lib2[id].notes))S.comments=lib2[id].notes.map(noteToComment);
     if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
+    if(S.step>5)S.step=5;
     logHist("Review reopened");$("#ms").value=S.ms||"";
     saveNow();closeModal();render();go(S.step||1);
   }));
   document.querySelectorAll("[data-delrev]").forEach(b=>b.addEventListener("click",()=>{
     const id=b.getAttribute("data-delrev");
-    const lib2=readLib();delete lib2[id];
-    try{localStorage.setItem(LIB_KEY,JSON.stringify(lib2));}catch(e){}
-    if(id===S.id){S=base();$("#ms").value="";saveNow();}
-    render();openReviews();
+    const nm=b.getAttribute("data-delname")||"this review";
+    openModal("Delete "+esc(nm).slice(0,60)+"?",
+      "<p style='margin:0 0 6px;font-size:13.5px;color:var(--ink-2)'>This removes the review from this browser. It cannot be undone — export a .pltpy first if you may need it.</p>"+
+      "<div class='f' style='margin-top:14px'><label for='delrev'>Type <b style='color:var(--major)'>DELETE</b> to confirm</label>"+
+      "<input class='inp' id='delrev' autocomplete='off' spellcheck='false' placeholder='DELETE'></div>",
+      "Delete review",()=>{
+        const v=String(($("#delrev")||{}).value||"").trim().toUpperCase();
+        if(v!=="DELETE"){const d=$("#delrev");if(d){d.focus();d.style.borderColor="var(--major)";}return;}
+        const lib2=readLib();delete lib2[id];
+        try{localStorage.setItem(LIB_KEY,JSON.stringify(lib2));}catch(e){}
+        if(id===S.id){S=base();$("#ms").value="";saveNow();}
+        closeModal();render();openReviews();
+      });
+    const dph=$("#delrev");
+    if(dph){$("#mconfirm").disabled=true;
+      dph.addEventListener("input",()=>{$("#mconfirm").disabled=dph.value.trim().toUpperCase()!=="DELETE";});
+      setTimeout(()=>dph.focus(),50);}
   }));
   const me=$("#m-export");if(me)me.addEventListener("click",()=>{closeModal();savePltpy();});
   const mi=$("#m-import");if(mi)mi.addEventListener("click",()=>{closeModal();$("#file-import").click();});
@@ -2080,12 +2208,15 @@ function switchToReview(j,histMsg){
   saveNow();
   const bb=base();S=Object.assign(bb,j);
   S.invite=Object.assign(base().invite,j.invite||{});
-  S.ai=Object.assign({on:null,ans:{}},j.ai||{});
   S.report=Object.assign({intro:"",letter:""},j.report||{});
   S.polish=Object.assign(base().polish,j.polish||{});
   S.springer=Object.assign({level:"",tool:"",detail:""},j.springer||{});
+  S.checklists=Object.assign({selected:"iaims",used:[]},j.checklists||{});
+  if(!Array.isArray(S.comments))S.comments=[];
+  if(!S.comments.length&&Array.isArray(j.notes))S.comments=j.notes.map(noteToComment);
   if(!Array.isArray(S.core))S.core=[];if(!Array.isArray(S.history))S.history=[];
   if(!S.id)S.id=uid();
+  if(S.step>5)S.step=5;
   if(histMsg)logHist(histMsg.msg,histMsg.detail);
   $("#ms").value=S.ms||"";
   saveNow();render();go(S.step||1);
@@ -2109,7 +2240,7 @@ function openContinue(){
   const lib=readLib();
   const ids=Object.keys(lib).sort((a,b)=>((lib[b]||{}).updatedAt||0)-((lib[a]||{}).updatedAt||0));
   const rows=ids.length?ids.map(id=>{
-    const r=lib[id]||{};const n=(r.notes||[]).length;
+    const r=lib[id]||{};const n=((r.comments||[]).length)||((r.notes||[]).length)||0;
     const when=r.updatedAt?new Date(r.updatedAt).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"}):"—";
     return '<div class="revrow"><div class="rm"><b>'+esc(r.ms||"Untitled manuscript")+'</b><span>'+n+' comments · updated '+esc(when)+'</span></div>'+
     '<button type="button" class="btn sec sm" data-openrev="'+id+'">Continue</button></div>';

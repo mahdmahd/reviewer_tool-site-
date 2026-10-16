@@ -1,0 +1,12 @@
+[
+  {"id": "c-design", "code": "C1", "q": "Is the imaging study design, use case and clinical role of the AI stated?", "hint": "Screening, triage, diagnosis, prediction; standalone vs assistive.", "severity": "major", "section": "Introduction", "src": "CLAIM 2024"},
+  {"id": "c-data", "code": "C2", "q": "Are image acquisition, devices, protocols and preprocessing described?", "hint": "Scanner models, parameters, harmonisation, annotation procedure.", "severity": "major", "section": "Methods", "src": "CLAIM 2024"},
+  {"id": "c-refstd", "code": "C3", "q": "Is the reference standard defined and its reliability assessed?", "hint": "Ground truth, reader experience, adjudication, inter-reader agreement.", "severity": "major", "section": "Methods", "src": "CLAIM 2024"},
+  {"id": "c-split", "code": "C4", "q": "Is the train/validation/test split at patient level with no leakage?", "hint": "Split by patient/site/time; test set locked before tuning.", "severity": "major", "section": "Methods", "src": "CLAIM 2024"},
+  {"id": "c-test", "code": "C5", "q": "Was testing done on an independent (external) imaging cohort?", "hint": "Different centre, scanner or time period.", "severity": "major", "section": "Results", "src": "CLAIM 2024"},
+  {"id": "c-metrics", "code": "C6", "q": "Are imaging-appropriate metrics reported with CIs?", "hint": "AUC, sensitivity/specificity at stated thresholds, calibration; no cherry-picked operating point.", "severity": "major", "section": "Results", "src": "CLAIM 2024"},
+  {"id": "c-compare", "code": "C7", "q": "Is the AI compared against a sensible baseline or clinician readers?", "hint": "Baseline model and/or reader study with stated experience.", "severity": "minor", "section": "Discussion", "src": "CLAIM 2024"},
+  {"id": "c-failure", "code": "C8", "q": "Are failure cases, subgroups and robustness shown?", "hint": "Error montage, subgroup performance, image-quality sensitivity.", "severity": "major", "section": "Results", "src": "CLAIM 2024"},
+  {"id": "c-repro", "code": "C9", "q": "Are code, model weights and data availability stated?", "hint": "Repository link, version, access procedure.", "severity": "minor", "section": "Methods", "src": "CLAIM 2024"},
+  {"id": "c-claim", "code": "C10", "q": "Do clinical claims stay within the tested setting?", "hint": "No generalisation beyond studied scanners/populations.", "severity": "major", "section": "Discussion", "src": "CLAIM 2024"}
+]
