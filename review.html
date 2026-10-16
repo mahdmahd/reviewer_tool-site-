@@ -1195,7 +1195,7 @@ function ckPicker(){
   h+='<div class="ckdetail" id="ckdetail"><b>'+esc(it.code||"")+' · '+esc(it.q||"No questions in this list yet.")+'</b><br><span class="ckhint">'+esc(it.hint||"")+'</span><br><span class="cksrc">'+esc(it.src||"")+'</span></div>';
   h+='<div class="capture-row full" style="margin-top:12px"><div class="f"><label>Answer</label>'+
     '<div class="ansrow" role="radiogroup" aria-label="Answer">'+CK_ANSWERS.map(a=>
-      '<button type="button" data-ckans="'+a+'" aria-pressed="'+(CKUI.answer===a)+'">'+a+'</button>').join("")+'</div></div></div>';
+      '<button type="button" data-ckans="'+a+'" data-a="'+a+'" aria-pressed="'+(CKUI.answer===a)+'">'+a+'</button>').join("")+'</div></div></div>';
   h+='<div class="capture-row full"><div class="f"><label>Weight — <span class="sugg" id="cksugg" style="margin:0">suggestion: <b>'+esc((CKUI.cls||it.sev||"major").toUpperCase())+'</b> · you decide</span></label>'+
     '<div class="ansrow" role="radiogroup" aria-label="Weight"><button type="button" class="mark m-maj" data-ckcls="major" aria-pressed="'+(CKUI.cls==="major")+'">Major</button>'+
     '<button type="button" class="mark m-min" data-ckcls="minor" aria-pressed="'+(CKUI.cls==="minor")+'">Minor</button></div></div></div>';
