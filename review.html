@@ -546,6 +546,19 @@ select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg
 .ckpick-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:4px}
 .ckpick-h .t{font-family:var(--f-display);font-size:16px;font-weight:700;letter-spacing:-.01em}
 .ckpick-h .d{font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.cktoggle{width:100%;font-family:var(--f-display);font-size:17px;font-weight:700;letter-spacing:-.01em;padding:16px;cursor:pointer;border:1px solid var(--rule-strong);background:var(--card);color:var(--ink);transition:all var(--t-fast) linear;margin-top:10px}
+.cktoggle:hover{border-color:var(--ultra);background:var(--ultra-wash)}
+.cktoggle[aria-pressed="true"]{background:var(--ultra);border-color:var(--ultra);color:#fff}
+.cktoggle small{display:block;font-family:var(--f-mono);font-size:10.5px;font-weight:400;letter-spacing:.08em;margin-top:5px;opacity:.75}
+.ckq-list{border:1px solid var(--rule);background:var(--paper);max-height:264px;overflow-y:auto;padding:6px;display:flex;flex-direction:column;gap:6px}
+.ckq{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:start;width:100%;text-align:left;background:var(--card);border:1px solid var(--hair);padding:9px 10px;cursor:pointer;font-family:var(--f-text);transition:all var(--t-fast) linear}
+.ckq:hover{border-color:var(--ink-3)}
+.ckq.is-sel{border-color:var(--ultra);background:var(--ultra-wash);outline:2px solid var(--ultra);outline-offset:-2px}
+.ckq-code{font-family:var(--f-mono);font-size:11px;font-weight:700;color:var(--ultra-ink)}
+.ckq-t{font-size:13.5px;line-height:1.45;color:var(--ink)}
+.ckdetail{border-left:3px solid var(--ai);background:#FBFAFE;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.55;color:var(--ink)}
+.ckdetail .ckhint{color:var(--ink-2);font-size:13px}
+.ckdetail .cksrc{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)}
 .cklists{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin:12px 0}
 .cklist{border:1px solid var(--rule);background:var(--paper);padding:10px 12px;cursor:pointer;text-align:left;transition:all var(--t-fast) linear;position:relative;font-family:var(--f-text)}
 .cklist:hover{border-color:var(--ink)}
@@ -1121,36 +1134,54 @@ function renameSec(i,v){
   allComments().forEach(n=>{if(n.section===old)n.section=nv;});
   save();render();
 }
-/* transient checklist composer state (not saved until the comment is added) */
-const CKUI={item:"",answer:"No",cls:"",note:""};
+/* transient checklist composer state (not saved until the comment is added).
+   Toggles update in place — never a full render — so focus and typed notes survive. */
+const CKUI={item:"",_item:"",answer:"No",cls:"",note:"",q:""};
+function ckSel(){return (S.checklists&&S.checklists.selected)||"iaims";}
+function ckSync(){
+  const sel=ckSel(),items=ckItemsOf(sel);
+  let it=items.find(x=>x.id===CKUI.item);
+  if(!it){it=items[0];CKUI.item=it?it.id:"";CKUI._item=CKUI.item;if(it)CKUI.cls=it.sev||"major";}
+  else if(CKUI._item!==CKUI.item){CKUI._item=CKUI.item;CKUI.cls=it.sev||"major";}
+  if(!CKUI.answer)CKUI.answer="No";
+  return {sel,items,it:it||{q:"",hint:"",code:"",src:"",sev:"major",sec:"Methods"}};
+}
+function ckCur(){const s=ckSel(),items=ckItemsOf(s);return items.find(x=>x.id===CKUI.item)||items[0]||{sev:"major",sec:"Methods"};}
 function ckPicker(){
-  const sel=(S.checklists&&S.checklists.selected)||"iaims";
-  const items=ckItemsOf(sel);
-  const cur=items.find(x=>x.id===(CKUI.item||""))||items[0];
-  if(cur&&!CKUI.item)CKUI.item=cur.id;
-  if(cur&&!CKUI.cls)CKUI.cls=cur.sev||"major";
-  const active=cur||{q:"",hint:"",code:"",src:"",sev:"major"};
-  return '<div class="ckpick">'+
+  const secs=sectionsList();
+  const open=!!(S.checklists&&S.checklists.open);
+  let h='<div class="ckpick">'+
+   '<div style="font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px">Capture a comment — from a checklist</div>'+
    '<div class="ckpick-h"><span class="t">AI Checklist <span style="font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;color:var(--ink-3)">OPTIONAL</span></span>'+
-   '<span class="d">Pick a list, answer Yes / No / Unclear / N-A. Only No + Unclear become report sentences.</span></div>'+
-   '<div class="cklists" role="radiogroup" aria-label="Checklist">'+CK_REG.map(r=>
-     '<button type="button" class="cklist" aria-pressed="'+(sel===r.id)+'" data-cklist="'+r.id+'">'+
-     '<span class="cn">'+esc(r.name)+(r.recommended?'<span class="rec-tag">Recommended</span>':"")+'</span>'+
-     '<span class="cu">'+esc(r.use||"")+'</span></button>').join("")+'</div>'+
-   '<div class="capture-row full"><div class="f"><label for="ckitem">Checklist question</label>'+
-     '<select class="inp" id="ckitem">'+items.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===CKUI.item?" selected":"")+'>'+esc((x.code||"")+" — "+x.q).slice(0,120)+'</option>').join("")+'</select></div></div>'+
-   '<div class="note-blk" style="margin:10px 0"><b>'+esc(active.code||"")+' · '+esc(active.q||"No questions in this list yet.")+'</b><br>'+esc(active.hint||"")+
-     '<br><span style="font-family:var(--f-mono);font-size:10.5px;color:var(--ink-3)">'+esc(active.src||"")+' · section '+esc(active.sec||"Methods")+'</span>'+
-     '<br><span class="sugg">Severity suggestion: <b>'+esc((CKUI.cls||active.sev||"major").toUpperCase())+'</b> — you decide, tap Major or Minor to override</span></div>'+
-   '<div class="ansrow" role="radiogroup" aria-label="Answer">'+CK_ANSWERS.map(a=>
-     '<button type="button" data-ckans="'+a+'" aria-pressed="'+(CKUI.answer===a)+'">'+a+'</button>').join("")+
-     '<button type="button" class="mark m-maj" data-ckcls="major" aria-pressed="'+(CKUI.cls==="major")+'">Major</button>'+
-     '<button type="button" class="mark m-min" data-ckcls="minor" aria-pressed="'+(CKUI.cls==="minor")+'">Minor</button></div>'+
-   '<div class="capture-row" style="margin-top:10px"><div class="f"><label for="ckline">Line (optional)</label><input class="inp" id="ckline" type="number" min="1" placeholder="General"></div>'+
-   '<div class="f"><label for="cknote">Note (optional, joins the report sentence)</label><input class="inp" id="cknote" value="'+esc(CKUI.note||"")+'" placeholder="e.g. no test-set description found"></div></div>'+
-   '<div style="margin-top:10px"><button type="button" class="btn sec sm" id="addCk">Add checklist comment</button> '+
-   '<span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Yes / N-A stay here and never reach the report.</span></div>'+
-  '</div>';
+   '<span class="d">Same comment objects — only No + Unclear become report sentences.</span></div>'+
+   '<button type="button" class="cktoggle" data-cktoggle aria-pressed="'+open+'">'+(open?"✓ AI Checklist is ON — tap to hide":"＋ Do you need AI Checklist? Tap to open")+
+   '<small>'+(open?"Checklist prompts below · each becomes a comment object":"Optional · general comments work fine without it")+'</small></button>';
+  if(!open)return h+'</div>';
+  const {sel,items,it}=ckSync();
+  const q=(CKUI.q||"").toLowerCase();
+  const shown=items.filter(x=>!q||((x.code||"")+" "+(x.q||"")+" "+(x.hint||"")).toLowerCase().includes(q));
+  h+='<div class="capture-row full" style="margin-top:12px"><div class="f"><label for="cklistsel">Checklist</label>'+
+    '<select class="inp" id="cklistsel">'+CK_REG.map(r=>'<option value="'+r.id+'"'+(sel===r.id?" selected":"")+'>'+esc(r.name)+(r.recommended?" — RECOMMENDED":"")+'</option>').join("")+'</select></div></div>';
+  h+='<div class="capture-row full"><div class="f"><label for="ckq">Find a question</label>'+
+    '<input class="inp" id="ckq" placeholder="Type to filter, e.g. leakage, test set…" value="'+esc(CKUI.q||"")+'" autocomplete="off"></div></div>';
+  h+='<div class="capture-row full"><div class="f"><label>Question — <span id="ckqcount">'+shown.length+'</span> of '+items.length+'</label>'+
+    '<div class="ckq-list" id="ckqlist">'+
+    (shown.length?shown.map(x=>'<button type="button" class="ckq'+(x.id===CKUI.item?" is-sel":"")+'" data-ckq="'+esc(x.id)+'" data-qtext="'+esc(((x.code||"")+" "+(x.q||"")+" "+(x.hint||"")).toLowerCase())+'">'+
+      '<span class="ckq-code">'+esc(x.code||"")+'</span><span class="ckq-t">'+esc(x.q)+'</span></button>').join(""):'<div class="empty">No questions match.</div>')+'</div></div></div>';
+  h+='<div class="ckdetail" id="ckdetail"><b>'+esc(it.code||"")+' · '+esc(it.q||"No questions in this list yet.")+'</b><br><span class="ckhint">'+esc(it.hint||"")+'</span><br><span class="cksrc">'+esc(it.src||"")+'</span></div>';
+  h+='<div class="capture-row full" style="margin-top:12px"><div class="f"><label>Answer</label>'+
+    '<div class="ansrow" role="radiogroup" aria-label="Answer">'+CK_ANSWERS.map(a=>
+      '<button type="button" data-ckans="'+a+'" aria-pressed="'+(CKUI.answer===a)+'">'+a+'</button>').join("")+'</div></div></div>';
+  h+='<div class="capture-row full"><div class="f"><label>Weight — <span class="sugg" id="cksugg" style="margin:0">suggestion: <b>'+esc((CKUI.cls||it.sev||"major").toUpperCase())+'</b> · you decide</span></label>'+
+    '<div class="ansrow" role="radiogroup" aria-label="Weight"><button type="button" class="mark m-maj" data-ckcls="major" aria-pressed="'+(CKUI.cls==="major")+'">Major</button>'+
+    '<button type="button" class="mark m-min" data-ckcls="minor" aria-pressed="'+(CKUI.cls==="minor")+'">Minor</button></div></div></div>';
+  h+='<div class="capture-row"><div class="f"><label for="ckline">Line</label><input class="inp" id="ckline" type="number" min="1" placeholder="42" inputmode="numeric"></div>'+
+   '<div class="f"><label for="cksec">Section</label><select class="inp" id="cksec">'+secs.map(s=>'<option'+(aiSecOf(it)===s?" selected":"")+'>'+esc(s)+'</option>').join("")+'</select></div></div>';
+  h+='<div class="capture-row full"><div class="f"><label for="cknote">Note (optional, joins the report sentence)</label>'+
+    '<input class="inp" id="cknote" value="'+esc(CKUI.note||"")+'" placeholder="e.g. no test-set description found"></div></div>';
+  h+='<div style="margin-top:10px"><button type="button" class="btn" id="addCk">Add comment</button> '+
+   '<span style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3)">Only No / Unclear reach the report, inside Major / Minor. Yes / N-A stay here.</span></div>';
+  return h+'</div>';
 }
 function commentCard(n){
   const s=sevOf(n);
@@ -1188,14 +1219,14 @@ function vRead(){
    '<button type="button" class="btn" id="addN1">Add comment</button> '+
    '<span class="meta" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);margin-left:10px">No severity yet — that is the second read.</span>'+
   '</div>'+
-  ckPicker()+
   '<div class="strip">'+
     '<div class="f"><label for="nq">Filter</label><input class="inp" id="nq" placeholder="Text or line number" autocomplete="off"></div>'+
     '<div class="f narrow"><label for="nsec">Section</label><select class="inp" id="nsec"><option value="">All</option>'+secs.map(s=>'<option>'+esc(s)+'</option>').join("")+'</select></div>'+
     '<span class="meta" id="ncount" style="font-family:var(--f-mono);font-size:11px;color:var(--ink-3);padding-bottom:9px">'+allComments().length+' of '+allComments().length+'</span>'+
   '</div>'+
   (sorted.length?'<div id="nlist">'+sorted.map(commentCard).join("")+'</div>'
-   :'<div class="empty">No readings yet. The first pass is capture only: note the line, note the section, note what you saw. Judgement comes in the second read, once you have the whole paper in your head.</div>');
+   :'<div class="empty">No readings yet. The first pass is capture only: note the line, note the section, note what you saw. Judgement comes in the second read, once you have the whole paper in your head.</div>')+
+  ckPicker();
 }
 
 /* ---- 03 triage ---- */
@@ -1584,39 +1615,65 @@ function wire(){
   Q('input[name="rec"]').forEach(r=>r.addEventListener("change",()=>{S.rec=r.value;logHist("Recommendation set",r.value);save();render();}));
   Q('input[name="route"]').forEach(r=>r.addEventListener("change",()=>{S.polish.route=r.value;S.polish.out="";S.polish.state="idle";S.polish.msg="";save();render();}));
 
-  /* checklist composer (First read merge) */
-  Q("[data-cklist]").forEach(b=>b.addEventListener("click",()=>{
-    S.checklists.selected=b.getAttribute("data-cklist");
-    const items=ckItemsOf(S.checklists.selected);
-    CKUI.item=(items[0]&&items[0].id)||"";CKUI.cls=(items[0]&&items[0].sev)||"major";
-    save();render();}));
-  const ckItem=F.querySelector("#ckitem");
-  if(ckItem)ckItem.addEventListener("change",()=>{
-    CKUI.item=ckItem.value;
-    const it=ckItemsOf(S.checklists.selected).find(x=>x.id===CKUI.item);
-    if(it)CKUI.cls=it.sev||"major";
-    render();
-    const nn=F.querySelector("#cknote");if(nn){nn.focus();}});
-  Q("[data-ckans]").forEach(b=>b.addEventListener("click",()=>{CKUI.answer=b.getAttribute("data-ckans");save();render();}));
+  /* checklist composer (First read merge) — toggles update in place, no render, no focus loss */
+  const ckTog=F.querySelector("[data-cktoggle]");
+  if(ckTog)ckTog.addEventListener("click",()=>{S.checklists.open=!S.checklists.open;save();render();});
+  const ckSelEl=F.querySelector("#cklistsel");
+  if(ckSelEl)ckSelEl.addEventListener("change",()=>{
+    S.checklists.selected=ckSelEl.value;
+    const items=ckItemsOf(ckSelEl.value);
+    CKUI.item=(items[0]&&items[0].id)||"";CKUI._item=CKUI.item;CKUI.cls=(items[0]&&items[0].sev)||"major";
+    save();render();});
+  const ckQ=F.querySelector("#ckq");
+  if(ckQ)ckQ.addEventListener("input",()=>{
+    CKUI.q=ckQ.value;
+    const q=CKUI.q.toLowerCase();
+    let v=0;
+    F.querySelectorAll("[data-ckq]").forEach(b=>{
+      const ok=!q||(b.getAttribute("data-qtext")||"").includes(q);
+      b.style.display=ok?"":"none";if(ok)v++;});
+    const lbl=F.querySelector("#ckqcount");if(lbl)lbl.textContent=v;});
+  const ckRefreshDetail=()=>{
+    const it=ckCur();
+    const d=F.querySelector("#ckdetail");
+    if(d)d.innerHTML='<b>'+esc(it.code||"")+' · '+esc(it.q||"No questions in this list yet.")+'</b><br><span class="ckhint">'+esc(it.hint||"")+'</span><br><span class="cksrc">'+esc(it.src||"")+'</span>';
+    const sg=F.querySelector("#cksugg");
+    if(sg)sg.innerHTML='suggestion: <b>'+esc((CKUI.cls||it.sev||"major").toUpperCase())+'</b> · you decide';
+    const sec=F.querySelector("#cksec");
+    if(sec){try{sec.value=aiSecOf(it);}catch(e){}}
+  };
+  Q("[data-ckq]").forEach(b=>b.addEventListener("click",()=>{
+    CKUI.item=b.getAttribute("data-ckq");
+    ckSync();
+    Q("[data-ckq]").forEach(x=>{x.classList.toggle("is-sel",x===b);});
+    Q("[data-ckcls]").forEach(x=>x.setAttribute("aria-pressed",x.getAttribute("data-ckcls")===CKUI.cls));
+    ckRefreshDetail();}));
+  Q("[data-ckans]").forEach(b=>b.addEventListener("click",()=>{
+    CKUI.answer=b.getAttribute("data-ckans");
+    Q("[data-ckans]").forEach(x=>x.setAttribute("aria-pressed",x===b));}));
   Q("[data-ckcls]").forEach(b=>b.addEventListener("click",()=>{
-    CKUI.cls=(CKUI.cls===b.getAttribute("data-ckcls")?"":b.getAttribute("data-ckcls"));render();}));
+    const v=b.getAttribute("data-ckcls");
+    CKUI.cls=(CKUI.cls===v?"":v);
+    Q("[data-ckcls]").forEach(x=>x.setAttribute("aria-pressed",x.getAttribute("data-ckcls")===CKUI.cls));
+    ckRefreshDetail();}));
   const ckNote=F.querySelector("#cknote");
   if(ckNote)ckNote.addEventListener("input",()=>{CKUI.note=ckNote.value;});
   const addCk=F.querySelector("#addCk");
   if(addCk)addCk.addEventListener("click",()=>{
-    const sel=S.checklists.selected||"iaims";
+    const sel=ckSel();
     const item=ckItemsOf(sel).find(x=>x.id===CKUI.item)||ckItemsOf(sel)[0];
     if(!item)return;
     const lineEl=F.querySelector("#ckline");
     const line=lineEl&&lineEl.value?String(lineEl.value):"";
-    const note=(F.querySelector("#cknote")||{}).value||CKUI.note||"";
+    const secEl=F.querySelector("#cksec");
+    const sec=secEl?secEl.value:aiSecOf(item);
+    const note=((F.querySelector("#cknote")||{}).value||"").trim();
     const answer=CKUI.answer||"No";
     const cls=CKUI.cls||item.sev||"major";
-    const sec=aiSecOf(item);
-    const text=ckSentence(sel,item,answer,note.trim(),line);
-    S.comments.push({id:uid(),kind:"checklist",text:text,cls:cls,core:false,line:line,section:sec,tags:[],
+    const text=ckSentence(sel,item,answer,note,line);
+    S.comments.push({id:uid(),kind:"checklist",text:text,cls:cls,core:false,line:line,section:sec||"General",tags:[],
       status:"raw",at:Date.now(),dirty:false,
-      checklist:{listId:sel,itemId:item.id,code:item.code||"",question:item.q||"",desc:item.hint||"",src:item.src||"",suggestedSev:item.sev||"major",answer:answer,note:note.trim()}});
+      checklist:{listId:sel,itemId:item.id,code:item.code||"",question:item.q||"",desc:item.hint||"",src:item.src||"",suggestedSev:item.sev||"major",answer:answer,note:note}});
     if(!S.checklists.used.includes(sel))S.checklists.used.push(sel);
     S.core=S.core||[];
     CKUI.note="";CKUI.answer="No";
